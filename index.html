@@ -648,7 +648,6 @@
 
     window.logout = () => signOut(auth);
 
-    // Écouteur Firestore pour le matériel (avec gestion d'erreur)
     onSnapshot(collection(db, "materiel"), (snapshot) => {
       materielsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const loadingEl = document.getElementById('loading');
@@ -661,7 +660,6 @@
       if (loadingEl) loadingEl.innerHTML = `<span style="color: var(--danger);">Erreur de chargement des données. Vérifiez vos règles Firestore.</span>`;
     });
 
-    // Écouteur Firestore pour les réservations (avec gestion d'erreur)
     onSnapshot(collection(db, "reservations"), (snapshot) => {
       if (currentUser && snapshot.docChanges().some(change => change.type === 'added')) {
         audioNotif.play().catch(e => console.log("Audio bloqué:", e));
@@ -1023,6 +1021,15 @@
         else if (statut === 'refusee') statutBadge = `<span class="tag-statut tag-refusee">Refusée</span>`;
         else statutBadge = `<span class="tag-statut" style="background:#fef3c7; color:#92400e;">En attente</span>`;
 
+        let boutonSupprimerIndividuel = '';
+        if (!estEnAttente) {
+          boutonSupprimerIndividuel = `
+            <button class="danger" style="padding: 4px 8px; font-size: 0.75rem; display: flex; align-items: center; gap: 4px;" onclick="supprimerReservationUnique('${resa.id}')">
+              🗑️ Supprimer de l'historique
+            </button>
+          `;
+        }
+
         html += `
           <div class="group-card">
             <div class="group-header">
@@ -1030,9 +1037,10 @@
                 <span class="group-user-info">👤 ${resa.prenom || ''} ${resa.nom || ''} (${resa.niveau || 'N/A'})</span><br>
                 <span style="font-size: 0.8rem; color: var(--text-muted);">📧 ${resa.email || 'N/A'}</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 ${statutBadge}
                 <span class="group-date">📅 Du ${formatDateFR(resa.dateDebut)} au ${formatDateFR(resa.dateFin)} (${resa.typePret === 'long' ? 'Prêt long' : 'Prêt court'})</span>
+                ${boutonSupprimerIndividuel}
               </div>
             </div>
             
@@ -1201,13 +1209,22 @@
           message: messageCompletFinal
         };
 
-        emailjs.send('service_fz68jl1', 'template_pqtasnz', templateParams).catch(mailErr => {
+        emailjs.send('service_default', 'template_default', templateParams).catch(mailErr => {
           console.error("Erreur d'envoi d'e-mail (non bloquante):", mailErr);
         });
 
         alert("Traitement effectué avec succès ! La demande a basculé dans l'historique.");
       } catch (err) {
         alert("Erreur lors du traitement : " + err.message);
+      }
+    };
+
+    window.supprimerReservationUnique = async (resaId) => {
+      if (!confirm("Voulez-vous vraiment supprimer cette réservation de l'historique ?")) return;
+      try {
+        await deleteDoc(doc(db, "reservations", resaId));
+      } catch (err) {
+        alert("Erreur lors de la suppression : " + err.message);
       }
     };
 
