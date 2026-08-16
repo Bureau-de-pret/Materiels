@@ -205,7 +205,6 @@
     .resa-table th { background: #f8fafc; color: var(--text-muted); font-weight: 600; }
 
     .tag-statut { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
-    .tag-attente { background: #fef3c7; color: #b45309; }
     .tag-validee { background: #dcfce7; color: #15803d; }
     .tag-refusee { background: #fee2e2; color: #b91c1c; }
 
@@ -506,7 +505,6 @@
       document.getElementById('categoryDropdownMenu').classList.add('hidden');
     };
 
-    // Fermer le menu déroulant si l'utilisateur clique en dehors
     window.addEventListener('click', (e) => {
       const container = document.querySelector('.dropdown-category-container');
       if (container && !container.contains(e.target)) {
@@ -791,10 +789,16 @@
       }
     };
 
-    window.supprimerReservationUnitaire = async (id) => {
-      if (confirm("Voulez-vous supprimer définitivement cet élément de l'historique ?")) {
+    // Suppression complète d'une réservation groupée entière
+    window.supprimerReservationGroupe = async (groupKey) => {
+      if (confirm("Voulez-vous supprimer définitivement cette réservation de l'historique ?")) {
         try {
-          await deleteDoc(doc(db, "reservations", id));
+          const itemsASupprimer = reservationsData.filter(r => 
+            (r.groupId || `${r.studentEmail}_${r.createdAt?.substring(0,16)}`) === groupKey
+          );
+          for (const item of itemsASupprimer) {
+            await deleteDoc(doc(db, "reservations", item.id));
+          }
         } catch(err) {
           alert("Erreur lors de la suppression : " + err.message);
         }
@@ -841,6 +845,12 @@
         const dateEmpruntFR = formatDateFR(groupe.dateEmprunt);
         const dureeTexte = groupe.typePret === 'long' ? 'Prêt long (7j)' : 'Prêt court (1j)';
 
+        // Bouton de suppression de la réservation entière si on est dans l'historique
+        let deleteGroupBtn = "";
+        if (activeAdminTab === 'historique') {
+          deleteGroupBtn = `<button class="danger" style="padding: 4px 8px; font-size: 0.75rem; margin-top: 4px;" onclick="supprimerReservationGroupe('${groupe.id}')">🗑️ Supprimer cette réservation</button>`;
+        }
+
         html += `
           <div class="group-card">
             <div class="group-header">
@@ -850,6 +860,7 @@
               </div>
               <div style="text-align: right;">
                 <div class="group-date">📅 Prêt : <strong>${dateEmpruntFR}</strong></div>
+                ${deleteGroupBtn}
               </div>
             </div>
 
@@ -870,11 +881,6 @@
           let tagStatut = "";
           if (item.statut === "validee") tagStatut = `<span class="tag-statut tag-validee">Acceptée (${item.quantiteValidee ?? item.quantite})</span>`;
           else if (item.statut === "refusee") tagStatut = `<span class="tag-statut tag-refusee">Refusée</span>`;
-
-          let deleteSingleBtn = "";
-          if (activeAdminTab === 'historique') {
-            deleteSingleBtn = `<button class="danger" style="padding: 2px 6px; font-size: 0.75rem; margin-left: 6px;" onclick="supprimerReservationUnitaire('${item.id}')" title="Supprimer cette ligne">🗑️</button>`;
-          }
 
           html += `
             <div class="item-choice-row">
@@ -899,7 +905,6 @@
                     </button>
                   ` : `
                     ${tagStatut}
-                    ${deleteSingleBtn}
                   `}
                 </div>
               </div>
