@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bureau de Prêt — Matériel & Réservations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- SDK EmailJS -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+     (function(){
+        emailjs.init("C090P_t0_z7dmVnGl");
+     })();
+  </script>
+
+  <style>
+    :root {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --danger: #ef4444;
+      --success-bg: #dcfce7;
+      --success-text: #15803d;
+      --warning-bg: #fef3c7;
+      --warning-text: #92400e;
+      --sidebar-width: 240px;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; transition: all 0.15s ease; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0; padding: 0;
+      background: var(--bg-main);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 32px;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 10;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 36px; height: 36px; background: var(--primary-light); color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    h1 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+
+    .cart-btn {
+      position: relative;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 9px 16px;
+      border-radius: 8px;
+    }
+    .cart-btn:hover { background: #dbeafe; }
+    .cart-badge {
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      padding: 2px 7px;
+      font-size: 0.75rem;
+      margin-left: 6px;
+    }
+
+    .app-layout { display: flex; min-height: calc(100vh - 69px); }
+
+    aside {
+      width: var(--sidebar-width); background: #ffffff;
+      border-right: 1px solid var(--border-color); padding: 24px 16px; flex-shrink: 0;
+    }
+
+    aside h3 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px 8px; letter-spacing: 0.08em; }
+
+    .category-list { list-style: none; padding: 0; margin: 0; }
+    .category-item { padding: 10px 14px; border-radius: var(--radius); cursor: pointer; font-weight: 500; font-size: 0.9rem; margin-bottom: 4px; color: var(--text-muted); }
+    .category-item:hover { background: var(--bg-main); color: var(--text-main); }
+    .category-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+    main { flex-grow: 1; padding: 32px; max-width: 960px; }
+
+    .search-container { position: relative; margin-bottom: 24px; }
+    .search-bar { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 0.95rem; background: #ffffff; outline: none; }
+    .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 18px 20px; margin-bottom: 12px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; }
+    .card:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04); }
+
+    .item-title { font-weight: 600; font-size: 1rem; color: var(--text-main); margin-right: 8px; }
+    .item-badge-cat { background: #f1f5f9; color: var(--text-muted); font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
+
+    .status-badge { padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.825rem; display: inline-flex; align-items: center; gap: 6px; }
+    .status-dispo { background: var(--success-bg); color: var(--success-text); }
+    .status-epuise { background: #fee2e2; color: #b91c1c; }
+
+    .admin-panel { background: #ffffff; padding: 24px; border-radius: var(--radius); margin-bottom: 24px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .admin-panel h3 { margin-top: 0; margin-bottom: 16px; font-size: 1.05rem; font-weight: 600; }
+    .form-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+    input, select { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 0.9rem; outline: none; }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+    button { cursor: pointer; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; font-family: inherit; font-weight: 500; font-size: 0.875rem; }
+    button.primary { background: var(--primary); color: white; border: none; }
+    button.primary:hover { background: var(--primary-hover); }
+    button.danger { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+    button.danger:hover { background: #fee2e2; }
+    button.qty-btn { padding: 4px 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 100; }
+    .modal-content { position: relative; background: white; padding: 28px; border-radius: 12px; width: 100%; max-width: 580px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto; }
+    
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-header h3 { margin: 0; font-size: 1.1rem; }
+    .close-btn { background: transparent; border: none; font-size: 1.5rem; line-height: 1; color: var(--text-muted); cursor: pointer; padding: 0 4px; border-radius: 4px; }
+    .close-btn:hover { color: var(--text-main); background: var(--bg-main); }
+
+    .notice-box {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border: 1px solid #fde68a;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+
+    .resa-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.875rem; }
+    .resa-table th, .resa-table td { padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left; }
+    .resa-table th { background: #f8fafc; color: var(--text-muted); font-weight: 600; }
+
+    .tag-statut { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+    .tag-attente { background: #fef3c7; color: #b45309; }
+    .tag-validee { background: #dcfce7; color: #15803d; }
+    .tag-refusee { background: #fee2e2; color: #b91c1c; }
+
+    .stock-info-tag { font-size: 0.8rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+
+    .group-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+    .group-user-info { font-weight: 600; font-size: 0.95rem; }
+    .group-date { color: var(--text-muted); font-size: 0.85rem; }
+
+    .item-choice-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 0;
+      border-bottom: 1px dashed #f1f5f9;
+    }
+    .item-choice-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-toggle-validee { background: var(--success-bg) !important; color: var(--success-text) !important; border-color: #bbf7d0 !important; font-weight: 600; }
+    .btn-toggle-refusee { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fecaca !important; font-weight: 600; }
+
+    .admin-tabs { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    .admin-tab-group { display: flex; gap: 8px; }
+    .admin-tab-btn { background: none; border: none; font-weight: 600; color: var(--text-muted); padding: 6px 12px; cursor: pointer; }
+    .admin-tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); border-radius: 0; }
+
+    .cart-add-box { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">📦</div>
+      <h1>Bureau de Prêt</h1>
+    </div>
+    <div class="header-actions">
+      <button class="cart-btn" onclick="ouvrirModalPanier()">
+        🛒 Mon Panier <span id="cartBadge" class="cart-badge">0</span>
+      </button>
+      <div id="authContainer">
+        <button id="loginBtn" onclick="toggleLoginForm()">Espace Gestionnaire</button>
+        <button id="logoutBtn" class="hidden" onclick="logout()">Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    
+    <aside>
+      <h3>Catégories</h3>
+      <ul class="category-list" id="categoryList">
+        <li class="category-item active" onclick="filtrerParCategorie('Toutes')">Toutes</li>
+        <li class="category-item" onclick="filtrerParCategorie('Câbles')">Câbles</li>
+        <li class="category-item" onclick="filtrerParCategorie('Caméra')">Caméra</li>
+        <li class="category-item" onclick="filtrerParCategorie('Micro')">Micro</li>
+        <li class="category-item" onclick="filtrerParCategorie('Projecteur')">Projecteur</li>
+        <li class="category-item" onclick="filtrerParCategorie('Son')">Son</li>
+        <li class="category-item" onclick="filtrerParCategorie('Écran')">Écran</li>
+        <li class="category-item" onclick="filtrerParCategorie('Autres')">Autres</li>
+      </ul>
+    </aside>
+
+    <main>
+
+      <!-- Connexion Admin -->
+      <div id="loginForm" class="admin-panel hidden">
+        <h3>Connexion Gestionnaire</h3>
+        <div class="form-grid">
+          <input type="email" id="email" placeholder="E-mail admin" autocomplete="username">
+          <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password">
+          <button class="primary" onclick="login()">Se connecter</button>
+        </div>
+      </div>
+
+      <!-- ESPACE GESTION DES RÉSERVATIONS (Admin) -->
+      <div id="reservationsPanel" class="admin-panel hidden" style="border-left: 4px solid var(--primary);">
+        <div class="admin-tabs">
+          <div class="admin-tab-group">
+            <button id="tabAttenteBtn" class="admin-tab-btn active" onclick="changerOngletAdmin('attente')">📥 Demandes en attente</button>
+            <button id="tabHistoriqueBtn" class="admin-tab-btn" onclick="changerOngletAdmin('historique')">📜 Historique complet</button>
+          </div>
+          <button id="clearHistoryBtn" class="danger hidden" style="padding: 4px 10px; font-size: 0.8rem;" onclick="viderHistorique()">🗑️ Vider l'historique</button>
+        </div>
+        <div id="reservationsList">Chargement...</div>
+      </div>
+
+      <!-- Ajout Matériel (Admin) -->
+      <div id="adminPanel" class="admin-panel hidden">
+        <h3>Ajouter un équipement au stock</h3>
+        <form id="addHardwareForm" class="form-grid" onsubmit="ajouterMateriel(event)">
+          <input type="text" id="nomMateriel" placeholder="Nom du matériel" required style="flex-grow: 1;">
+          <select id="categorieMateriel" required>
+            <option value="" disabled selected>Catégorie...</option>
+            <option value="Câbles">Câbles</option>
+            <option value="Caméra">Caméra</option>
+            <option value="Micro">Micro</option>
+            <option value="Projecteur">Projecteur</option>
+            <option value="Son">Son</option>
+            <option value="Écran">Écran</option>
+            <option value="Autres">Autres</option>
+          </select>
+          <input type="number" id="quantiteInitiale" placeholder="Stock total" min="1" value="1" style="width: 110px;" required>
+          <button type="submit" class="primary">+ Ajouter au stock</button>
+        </form>
+      </div>
+
+      <!-- Barre de Recherche -->
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher un équipement..." oninput="afficherMateriel()">
+      </div>
+
+      <div id="loading" style="color: var(--text-muted); font-size: 0.9rem;">Chargement des données...</div>
+      <div id="materielList"></div>
+
+    </main>
+  </div>
+
+  <!-- MODALE DU PANIER ÉTUDIANT -->
+  <div id="cartModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h3>🛒 Mon Panier de Réservation</h3>
+        <button class="close-btn" onclick="fermerModalPanier()" title="Fermer">&times;</button>
+      </div>
+
+      <div class="notice-box">
+        <strong>📌 Important :</strong> Ce service est réservé uniquement aux <strong>réservations anticipées à partir de demain</strong>.<br>
+        🏃 <em>Pour un prêt le jour même, merci de vous rendre directement au bureau.</em>
+      </div>
+
+      <div id="cartContent"></div>
+      
+      <div id="cartFormContainer" class="hidden" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+        
+        <h4 style="margin-bottom: 12px;">📅 Type de Prêt, Date & Informations</h4>
+        
+        <form onsubmit="event.preventDefault(); validerPanierDirectement();">
+          
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Type de prêt :</label>
+            <select id="cartTypePret" style="width: 100%;" required>
+              <option value="court">Prêt court (1 jour)</option>
+              <option value="long">Prêt long (7 jours)</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Date souhaitée du prêt :</label>
+            <input type="date" id="cartDate" style="width: 100%;" required>
+          </div>
+
+          <!-- BALISES AVEC AUTOCOMPLETE POUR PROPOSER LES INFORMATIONS ENREGISTRÉES -->
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input type="text" id="studentNom" placeholder="Nom" autocomplete="family-name" name="surname" style="width: 50%;" required>
+            <input type="text" id="studentPrenom" placeholder="Prénom" autocomplete="given-name" name="firstname" style="width: 50%;" required>
+          </div>
+
+          <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Niveau d'études / Statut :</label>
+            <select id="studentNiveau" style="width: 100%;" required>
+              <option value="" disabled selected>Sélectionnez votre niveau ou statut...</option>
+              <option value="L1">L1</option>
+              <option value="L2">L2</option>
+              <option value="L3">L3</option>
+              <option value="M1">M1</option>
+              <option value="M2">M2</option>
+              <option value="Professeur">Professeur</option>
+            </select>
+          </div>
+          
+          <input type="email" id="studentEmail" placeholder="E-mail universitaire (@etu...)" autocomplete="email" name="email" style="width: 100%; margin-bottom: 16px;" required>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" onclick="fermerModalPanier()">Annuler</button>
+            <button type="submit" id="btnSubmitCart" class="primary">Envoyer la réservation</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- JS FIREBASE & LOGIQUE APPLICATIVE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCm-LS8dXVZeW8NJrEtxjl_qrcbPvF-grs",
+      authDomain: "bureau-pret-ujm.firebaseapp.com",
+      projectId: "bureau-pret-ujm",
+      storageBucket: "bureau-pret-ujm.firebasestorage.app",
+      messagingSenderId: "258765273084",
+      appId: "1:258765273084:web:6f3ee5715a13ce46402479",
+      measurementId: "G-E940WWE7FW"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // PERSISTENCE SUR L'ORDINATEUR
+    setPersistence(auth, browserLocalPersistence).catch((err) => {
+      console.error("Erreur de persistance auth:", err);
+    });
+
+    let currentUser = null;
+    let materielsData = [];
+    let reservationsData = [];
+    let selectedCategory = "Toutes";
+    let activeAdminTab = "attente";
+
+    let adminChoices = {}; 
+    let adminQuantities = {}; 
+    let adminMotifs = {};
+
+    let panier = JSON.parse(localStorage.getItem('bureau_pret_panier')) || [];
+
+    function formatDateFR(dateStr) {
+      if (!dateStr) return '';
+      if (dateStr.includes('-')) {
+        const parts = dateStr.split('T')[0].split('-');
+        if (parts.length === 3) {
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+      }
+      return dateStr;
+    }
+
+    function ajouterJoursDate(dateStr, jours) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + jours);
+      return d.toISOString().split('T')[0];
+    }
+
+    function sauvegarderPanier() {
+      localStorage.setItem('bureau_pret_panier', JSON.stringify(panier));
+      actualiserBadgePanier();
+    }
+
+    function actualiserBadgePanier() {
+      const badge = document.getElementById('cartBadge');
+      const total = panier.reduce((acc, item) => acc + item.quantite, 0);
+      badge.textContent = total;
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      document.getElementById('adminPanel').classList.toggle('hidden', !user);
+      document.getElementById('reservationsPanel').classList.toggle('hidden', !user);
+      document.getElementById('logoutBtn').classList.toggle('hidden', !user);
+      document.getElementById('loginBtn').classList.toggle('hidden', !!user);
+      document.getElementById('loginForm').classList.add('hidden');
+      afficherMateriel();
+    });
+
+    window.toggleLoginForm = () => document.getElementById('loginForm').classList.toggle('hidden');
+    
+    window.login = async () => {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (err) {
+        alert("Erreur : Identifiants incorrects.");
+      }
+    };
+
+    window.logout = () => signOut(auth);
+
+    onSnapshot(collection(db, "materiel"), (snapshot) => {
+      materielsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      document.getElementById('loading').classList.add('hidden');
+      afficherMateriel();
+      if (currentUser) afficherReservationsAdmin();
+    });
+
+    onSnapshot(collection(db, "reservations"), (snapshot) => {
+      reservationsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      afficherReservationsAdmin();
+    });
+
+    window.filtrerParCategorie = (cat) => {
+      selectedCategory = cat;
+      const items = document.querySelectorAll('.category-item');
+      items.forEach(item => item.classList.toggle('active', item.textContent.trim().startsWith(cat)));
+      afficherMateriel();
+    };
+
+    window.afficherMateriel = () => {
+      const container = document.getElementById('materielList');
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      container.innerHTML = "";
+
+      const filteredData = materielsData.filter(item => {
+        const matchesCategory = selectedCategory === "Toutes" || item.categorie === selectedCategory;
+        const matchesSearch = item.nom.toLowerCase().includes(searchQuery) || item.categorie.toLowerCase().includes(searchQuery);
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filteredData.length === 0) {
+        container.innerHTML = `<p style='color: var(--text-muted); font-size: 0.9rem;'>Aucun équipement trouvé.</p>`;
+        return;
+      }
+
+      filteredData.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "card";
+
+        const stockDispo = item.quantiteDispo ?? 0;
+        const stockTotal = item.quantiteTotal ?? 1;
+        const isDispo = stockDispo > 0;
+
+        let controls = "";
+        if (currentUser) {
+          controls = `
+            <div style="margin-top: 10px;">
+              <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo - 1}, ${stockTotal})" ${stockDispo <= 0 ? 'disabled' : ''}>-1</button>
+              <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo + 1}, ${stockTotal})" ${stockDispo >= stockTotal ? 'disabled' : ''}>+1</button>
+              <button class="danger" onclick="supprimerMateriel('${item.id}')">Supprimer</button>
+            </div>
+          `;
+        } else if (isDispo) {
+          controls = `
+            <div class="cart-add-box">
+              <label style="font-size: 0.8rem; color: var(--text-muted);">Qté :</label>
+              <input type="number" id="qty-${item.id}" value="1" min="1" max="${stockDispo}" style="width: 55px; padding: 6px;">
+              <button class="primary" onclick="ajouterAuPanier('${item.id}', '${item.nom}', ${stockDispo})">+ Ajouter au panier</button>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div>
+            <div>
+              <span class="item-title">${item.nom}</span>
+              <span class="item-badge-cat">${item.categorie}</span>
+            </div>
+            ${controls}
+          </div>
+          <div>
+            <div class="status-badge ${isDispo ? 'status-dispo' : 'status-epuise'}">
+              ${stockDispo} / ${stockTotal} dispo
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    };
+
+    window.ajouterAuPanier = (id, nom, stockMax) => {
+      const qteInput = document.getElementById(`qty-${id}`);
+      const qte = parseInt(qteInput.value, 10);
+
+      if (qte > stockMax) {
+        alert(`Seulement ${stockMax} unités disponibles en stock !`);
+        return;
+      }
+
+      const index = panier.findIndex(p => p.id === id);
+      if (index > -1) {
+        if (panier[index].quantite + qte > stockMax) {
+          alert(`Vous ne pouvez pas réserver plus que la quantité disponible (${stockMax}).`);
+          return;
+        }
+        panier[index].quantite += qte;
+      } else {
+        panier.push({ id, nom, quantite: qte });
+      }
+
+      sauvegarderPanier();
+    };
+
+    window.ouvrirModalPanier = () => {
+      const cartDateInput = document.getElementById('cartDate');
+      
+      const demain = new Date();
+      demain.setDate(demain.getDate() + 1);
+      const minDateStr = demain.toISOString().split('T')[0];
+      
+      cartDateInput.min = minDateStr;
+      if (!cartDateInput.value || cartDateInput.value < minDateStr) {
+        cartDateInput.value = minDateStr;
+      }
+
+      afficherContenuPanier();
+      document.getElementById('cartModal').classList.remove('hidden');
+    };
+
+    window.fermerModalPanier = () => document.getElementById('cartModal').classList.add('hidden');
+
+    function afficherContenuPanier() {
+      const container = document.getElementById('cartContent');
+      const formContainer = document.getElementById('cartFormContainer');
+
+      if (panier.length === 0) {
+        container.innerHTML = "<p style='color:var(--text-muted); text-align:center; margin: 20px 0;'>Votre panier est vide.</p>";
+        formContainer.classList.add('hidden');
+        return;
+      }
+
+      let html = `
+        <table class="resa-table">
+          <thead>
+            <tr>
+              <th>Matériel sélectionné</th>
+              <th>Quantité</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      panier.forEach((item, idx) => {
+        html += `
+          <tr>
+            <td><strong>${item.nom}</strong></td>
+            <td>${item.quantite}</td>
+            <td><button class="danger" style="padding:2px 8px; font-size:0.75rem;" onclick="retirerDuPanier(${idx})">Supprimer</button></td>
+          </tr>
+        `;
+      });
+
+      html += "</tbody></table>";
+      container.innerHTML = html;
+      formContainer.classList.remove('hidden');
+    }
+
+    window.retirerDuPanier = (index) => {
+      panier.splice(index, 1);
+      sauvegarderPanier();
+      afficherContenuPanier();
+    };
+
+    window.validerPanierDirectement = async () => {
+      const submitBtn = document.getElementById('btnSubmitCart');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Envoi en cours...";
+
+      const typePret = document.getElementById('cartTypePret').value;
+      const date = document.getElementById('cartDate').value;
+      const nom = document.getElementById('studentNom').value.trim();
+      const prenom = document.getElementById('studentPrenom').value.trim();
+      const niveau = document.getElementById('studentNiveau').value;
+      const email = document.getElementById('studentEmail').value.trim();
+
+      const aujourdhuiStr = new Date().toISOString().split('T')[0];
+      if (date <= aujourdhuiStr) {
+        alert("La réservation doit être faite pour un jour ultérieur (impossible pour aujourd'hui ou dans le passé).");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Envoyer la réservation";
+        return;
+      }
+
+      if (!date || !nom || !prenom || !niveau || !email) {
+        alert("Veuillez remplir tous les champs (type de prêt, date, nom, prénom, niveau/statut, e-mail).");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Envoyer la réservation";
+        return;
+      }
+
+      if (panier.length === 0) {
+        alert("Votre panier est vide.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Envoyer la réservation";
+        return;
+      }
+
+      try {
+        const groupId = `group_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+
+        for (const item of panier) {
+          await addDoc(collection(db, "reservations"), {
+            groupId: groupId,
+            materielId: item.id,
+            materielNom: item.nom,
+            quantite: item.quantite,
+            typePret: typePret,
+            studentNom: nom,
+            studentPrenom: prenom,
+            studentNiveau: niveau,
+            studentEmail: email,
+            dateEmprunt: date,
+            statut: "en_attente",
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        alert("Votre demande de réservation a bien été enregistrée !");
+        panier = [];
+        sauvegarderPanier();
+        
+        fermerModalPanier();
+
+      } catch (err) {
+        console.error("Erreur d'envoi :", err);
+        alert("Erreur lors de l'envoi : " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Envoyer la réservation";
+      }
+    };
+
+    window.changerOngletAdmin = (tab) => {
+      activeAdminTab = tab;
+      document.getElementById('tabAttenteBtn').classList.toggle('active', tab === 'attente');
+      document.getElementById('tabHistoriqueBtn').classList.toggle('active', tab === 'historique');
+      document.getElementById('clearHistoryBtn').classList.toggle('hidden', tab !== 'historique');
+      afficherReservationsAdmin();
+    };
+
+    window.viderHistorique = async () => {
+      const historique = reservationsData.filter(r => r.statut !== "en_attente");
+      if (historique.length === 0) {
+        alert("L'historique est déjà vide.");
+        return;
+      }
+
+      if (confirm(`Voulez-vous vraiment supprimer définitivement les ${historique.length} demande(s) enregistrées dans l'historique ?`)) {
+        for (const item of historique) {
+          await deleteDoc(doc(db, "reservations", item.id));
+        }
+        alert("Historique vidé avec succès.");
+      }
+    };
+
+    function afficherReservationsAdmin() {
+      const container = document.getElementById('reservationsList');
+      if (!container) return;
+
+      let liste = [];
+      if (activeAdminTab === 'attente') {
+        liste = reservationsData.filter(r => r.statut === "en_attente");
+      } else {
+        liste = reservationsData.filter(r => r.statut !== "en_attente");
+      }
+
+      if (liste.length === 0) {
+        container.innerHTML = `<p style='color: var(--text-muted); font-size: 0.875rem;'>Aucune réservation enregistrée dans cette rubrique.</p>`;
+        return;
+      }
+
+      const groupes = {};
+      liste.forEach(r => {
+        const key = r.groupId || `${r.studentEmail}_${r.createdAt?.substring(0,16)}`;
+        if (!groupes[key]) {
+          groupes[key] = {
+            id: key,
+            studentPrenom: r.studentPrenom,
+            studentNom: r.studentNom,
+            studentNiveau: r.studentNiveau || 'Non spécifié',
+            studentEmail: r.studentEmail,
+            dateEmprunt: r.dateEmprunt,
+            typePret: r.typePret || 'court',
+            items: []
+          };
+        }
+        groupes[key].items.push(r);
+      });
+
+      let html = "";
+
+      Object.values(groupes).forEach(groupe => {
+        const dateEmpruntFR = formatDateFR(groupe.dateEmprunt);
+        const dureeTexte = groupe.typePret === 'long' ? 'Prêt long (7 jours)' : 'Prêt court (1 jour)';
+
+        html += `
+          <div class="group-card">
+            <div class="group-header">
+              <div>
+                <div class="group-user-info">👤 ${groupe.studentPrenom} ${groupe.studentNom} <span style="font-weight: normal; font-size: 0.85rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px; margin-left: 6px;">${groupe.studentNiveau}</span></div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">${groupe.studentEmail} — <span style="font-weight:600; color:var(--text-main);">${dureeTexte}</span></div>
+              </div>
+              <div style="text-align: right;">
+                <div class="group-date">📅 Date souhaitée : <strong>${dateEmpruntFR}</strong></div>
+              </div>
+            </div>
+
+            <div class="group-body">
+        `;
+
+        groupe.items.forEach(item => {
+          let selection = adminChoices[item.id] || "attente";
+          let qteValidee = adminQuantities[item.id] !== undefined ? adminQuantities[item.id] : item.quantite;
+          let motif = adminMotifs[item.id] || "";
+
+          // RECUPERATION DU STOCK EN DIRECT DE L'OBJET CONCERNÉ
+          const materielObjet = materielsData.find(m => m.id === item.materielId || m.nom === item.materielNom);
+          let stockDirectText = "";
+          if (materielObjet) {
+            stockDirectText = `<span class="stock-info-tag" title="Stock en direct dans la base">Stock actuel: ${materielObjet.quantiteDispo ?? 0}/${materielObjet.quantiteTotal ?? 0}</span>`;
+          }
+
+          let tagStatut = "";
+          if (item.statut === "validee") tagStatut = `<span class="tag-statut tag-validee">Acceptée (${item.quantiteValidee ?? item.quantite})</span>`;
+          else if (item.statut === "refusee") tagStatut = `<span class="tag-statut tag-refusee">Refusée</span>`;
+
+          html += `
+            <div class="item-choice-row">
+              <div class="item-choice-main">
+                <div>
+                  <strong>${item.materielNom}</strong> (Demandé: ${item.quantite}) ${stockDirectText}
+                </div>
+                
+                <div>
+                  ${activeAdminTab === 'attente' ? `
+                    <button type="button" 
+                            class="${selection === 'validee' ? 'btn-toggle-validee' : ''}" 
+                            style="padding: 4px 10px; font-size: 0.8rem;" 
+                            onclick="choisirStatutItem('${item.id}', 'validee')">
+                      ✓ Accepter
+                    </button>
+                    <button type="button" 
+                            class="${selection === 'refusee' ? 'btn-toggle-refusee' : ''}" 
+                            style="padding: 4px 10px; font-size: 0.8rem;" 
+                            onclick="choisirStatutItem('${item.id}', 'refusee')">
+                      ✕ Refuser
+                    </button>
+                  ` : `
+                    ${tagStatut}
+                  `}
+                </div>
+              </div>
+
+              ${activeAdminTab === 'attente' && selection === 'validee' ? `
+                <div style="display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 8px; border-radius: 6px; margin-top: 4px;">
+                  <label style="font-size: 0.8rem; font-weight: 600;">Qté accordée :</label>
+                  <input type="number" value="${qteValidee}" min="1" max="${item.quantite}" style="width: 65px; padding: 4px 8px;" onchange="changerQteAdmin('${item.id}', this.value)">
+                  <input type="text" placeholder="Raison si quantité partielle/particulière..." value="${motif}" style="flex-grow: 1; padding: 4px 8px; font-size: 0.8rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
+                </div>
+              ` : ''}
+
+              ${activeAdminTab === 'attente' && selection === 'refusee' ? `
+                <div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-top: 4px;">
+                  <input type="text" placeholder="Raison du refus (ex: Indisponible, réparation...)" value="${motif}" style="width: 100%; padding: 4px 8px; font-size: 0.8rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
+                </div>
+              ` : ''}
+
+              ${activeAdminTab === 'historique' && item.motif ? `
+                <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">
+                  Note : ${item.motif}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+
+        if (activeAdminTab === 'attente') {
+          html += `
+            <div style="margin-top: 14px; text-align: right;">
+              <button class="primary" onclick="validerGroupeGlobal('${groupe.id}')">
+                📧 Enregistrer et envoyer la décision globale
+              </button>
+            </div>
+          `;
+        }
+
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    window.choisirStatutItem = (itemId, statut) => {
+      adminChoices[itemId] = statut;
+      afficherReservationsAdmin();
+    };
+
+    window.changerQteAdmin = (itemId, qte) => {
+      adminQuantities[itemId] = parseInt(qte, 10);
+    };
+
+    window.changerMotifAdmin = (itemId, text) => {
+      adminMotifs[itemId] = text.trim();
+    };
+
+    window.validerGroupeGlobal = async (groupKey) => {
+      const itemsGroupe = reservationsData.filter(r => 
+        (r.groupId || `${r.studentEmail}_${r.createdAt?.substring(0,16)}`) === groupKey
+      );
+
+      for (const item of itemsGroupe) {
+        if (!adminChoices[item.id]) {
+          alert(`Veuillez accepter ou refuser chaque élément du panier avant de valider la décision.`);
+          return;
+        }
+      }
+
+      let acceptes = [];
+      let mefuses = [];
+
+      for (const item of itemsGroupe) {
+        const choix = adminChoices[item.id];
+        const qteAccordee = adminQuantities[item.id] !== undefined ? adminQuantities[item.id] : item.quantite;
+        const motif = adminMotifs[item.id] || "";
+
+        await updateDoc(doc(db, "reservations", item.id), { 
+          statut: choix,
+          quantiteValidee: choix === "validee" ? qteAccordee : 0,
+          motif: motif
+        });
+
+        if (choix === "validee") {
+          let detail = `• ${item.materielNom} : ${qteAccordee} accordé(s) sur ${item.quantite} demandé(s)`;
+          if (motif) detail += ` (${motif})`;
+          acceptes.push(detail);
+        } else {
+          let detail = `• ${item.materielNom} (Quantité: ${item.quantite})`;
+          if (motif) detail += ` — Raison : ${motif}`;
+          mefuses.push(detail);
+        }
+      }
+
+      const premier = itemsGroupe[0];
+      const dateEmprunt = premier.dateEmprunt;
+      const typePret = premier.typePret || 'court';
+      const dateFR = formatDateFR(dateEmprunt);
+      
+      let dateRetourPrevue = dateEmprunt;
+      let dateRappelEmail = "";
+
+      if (typePret === 'long') {
+        dateRetourPrevue = ajouterJoursDate(dateEmprunt, 7);
+        dateRappelEmail = ajouterJoursDate(dateEmprunt, 6);
+      } else {
+        dateRetourPrevue = ajouterJoursDate(dateEmprunt, 1);
+      }
+
+      const dateRetourFR = formatDateFR(dateRetourPrevue);
+      const dateRappelFR = formatDateFR(dateRappelEmail);
+
+      // MESSAGE AVEC MENTION NO-REPLY / NE PAS RÉPONDRE
+      let messageEmail = `Bonjour ${premier.studentPrenom},\n\nVoici la réponse concernant votre demande de réservation globale (${typePret === 'long' ? 'Prêt long de 7 jours' : 'Prêt court de 1 jour'}) prévue pour le ${dateFR} :\n\n`;
+
+      if (acceptes.length > 0) {
+        messageEmail += `✅ ÉQUIPEMENT(S) VALIDÉ(S) :\n${acceptes.join('\n')}\n`;
+        messageEmail += `• Date de retour prévue : le ${dateRetourFR}\n`;
+        if (typePret === 'long' && dateRappelEmail) {
+          messageEmail += `(Un e-mail de rappel vous sera envoyé le ${dateRappelFR}, soit le 6ème jour, pour vous rappeler que le matériel doit être rendu le lendemain).\n`;
+        }
+        messageEmail += `\n(Vous pourrez venir les récupérer directement au bureau de prêt.)\n\n`;
+      }
+
+      if (mefuses.length > 0) {
+        messageEmail += `❌ ÉQUIPEMENT(S) REFUSÉ(S) :\n${mefuses.join('\n')}\n\n`;
+      }
+
+      messageEmail += "Cordialement,\nL'équipe du Bureau de Prêt.\n\n--------------------------------------------------\n⚠️ ATTENTION : Merci de ne pas répondre à cet e-mail. Ce message est envoyé automatiquement et les réponses ne seront pas lues par les moniteurs du bureau de prêt.";
+
+      try {
+        await emailjs.send("service_bectm04", "template_pqtasnz", {
+          to_email: premier.studentEmail,
+          to_name: `${premier.studentPrenom} ${premier.studentNom}`,
+          subject: "Décision concernant votre demande de réservation",
+          message: messageEmail,
+          date_emprunt: dateFR,
+          materiel: acceptes.join(', '), 
+          statut: acceptes.length > 0 ? "Acceptée" : "Refusée"
+        });
+        alert(`Décision enregistrée et e-mail récapitulatif envoyé à ${premier.studentEmail}.`);
+      } catch (err) {
+        console.error("Erreur d'envoi d'email EmailJS :", err);
+        alert(`Décision enregistrée dans la base, mais l'e-mail récapitulatif n'a pas pu être envoyé.`);
+      }
+
+      itemsGroupe.forEach(item => {
+        delete adminChoices[item.id];
+        delete adminQuantities[item.id];
+        delete adminMotifs[item.id];
+      });
+    };
+
+    window.ajouterMateriel = async (e) => {
+      e.preventDefault();
+      const nom = document.getElementById('nomMateriel').value;
+      const categorie = document.getElementById('categorieMateriel').value;
+      const quantite = parseInt(document.getElementById('quantiteInitiale').value, 10);
+
+      await addDoc(collection(db, "materiel"), {
+        nom: nom,
+        categorie: categorie,
+        quantiteTotal: quantite,
+        quantiteDispo: quantite
+      });
+
+      document.getElementById('addHardwareForm').reset();
+    };
+
+    window.modifierStock = async (id, nouvelleQuantiteDispo, stockTotal) => {
+      if (nouvelleQuantiteDispo < 0 || nouvelleQuantiteDispo > stockTotal) return;
+      await updateDoc(doc(db, "materiel", id), { quantiteDispo: nouvelleQuantiteDispo });
+    };
+
+    window.supprimerMateriel = async (id) => {
+      if (confirm("Voulez-vous supprimer cet équipement du catalogue ?")) {
+        await deleteDoc(doc(db, "materiel", id));
+      }
+    };
+
+    actualiserBadgePanier();
+  </script>
+</body>
+</html>
