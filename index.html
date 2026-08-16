@@ -648,13 +648,20 @@
 
     window.logout = () => signOut(auth);
 
+    // Écouteur Firestore pour le matériel (avec gestion d'erreur)
     onSnapshot(collection(db, "materiel"), (snapshot) => {
       materielsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      document.getElementById('loading').classList.add('hidden');
+      const loadingEl = document.getElementById('loading');
+      if (loadingEl) loadingEl.classList.add('hidden');
       afficherMateriel();
       if (currentUser) afficherReservationsAdmin();
+    }, (error) => {
+      console.error("Erreur de chargement du matériel:", error);
+      const loadingEl = document.getElementById('loading');
+      if (loadingEl) loadingEl.innerHTML = `<span style="color: var(--danger);">Erreur de chargement des données. Vérifiez vos règles Firestore.</span>`;
     });
 
+    // Écouteur Firestore pour les réservations (avec gestion d'erreur)
     onSnapshot(collection(db, "reservations"), (snapshot) => {
       if (currentUser && snapshot.docChanges().some(change => change.type === 'added')) {
         audioNotif.play().catch(e => console.log("Audio bloqué:", e));
@@ -662,6 +669,8 @@
       reservationsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       verifierEtAppliquerStocksDuJour();
       afficherReservationsAdmin();
+    }, (error) => {
+      console.error("Erreur de chargement des réservations:", error);
     });
 
     async function verifierEtAppliquerStocksDuJour() {
@@ -685,7 +694,8 @@
 
     window.afficherMateriel = () => {
       const container = document.getElementById('materielList');
-      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const searchInputEl = document.getElementById('searchInput');
+      const searchQuery = searchInputEl ? searchInputEl.value.toLowerCase() : "";
       container.innerHTML = "";
 
       const filteredData = materielsData.filter(item => {
@@ -1134,7 +1144,6 @@
           stockImmediatImpacte = true;
         }
 
-        // 1. Mise à jour prioritaire dans Firestore
         await updateDoc(doc(db, "reservations", resaId), {
           statut: statutFinal,
           items: itemsFinal,
@@ -1142,7 +1151,6 @@
           stockDecompte: stockImmediatImpacte
         });
 
-        // 2. Envoi de l'e-mail en arrière-plan sans bloquer l'affichage
         let listeMaterielHtml = "";
         let texteMoinsMateriel = false;
 
@@ -1189,7 +1197,7 @@
           message: messageCompletFinal
         };
 
-        await emailjs.send('service_fz68jl1', 'template_pqtasnz', templateParams);.catch(mailErr => {
+        emailjs.send('service_fz68jl1', 'template_pqtasnz', templateParams).catch(mailErr => {
           console.error("Erreur d'envoi d'e-mail (non bloquante):", mailErr);
         });
 
