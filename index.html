@@ -996,10 +996,11 @@
       if (!currentUser) return;
 
       const filtrees = reservationsData.filter(r => {
+        const statut = r.statut || 'en_attente';
         if (activeAdminTab === 'attente') {
-          return !r.statut || r.statut === 'en_attente';
+          return statut === 'en_attente';
         } else {
-          return r.statut && r.statut !== 'en_attente';
+          return statut !== 'en_attente';
         }
       });
 
@@ -1008,25 +1009,26 @@
         return;
       }
 
-      filtrees.sort((a, b) => new Date(b.dateCreation) - new Date(a.dateCreation));
+      filtrees.sort((a, b) => new Date(b.dateCreation || 0) - new Date(a.dateCreation || 0));
 
       let html = `<div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">`;
 
       filtrees.forEach(resa => {
-        const estEnAttente = !resa.statut || resa.statut === 'en_attente';
-        const choixActuel = adminChoices[resa.id] !== undefined ? adminChoices[resa.id] : (estEnAttente ? true : (resa.statut === 'validee'));
+        const statut = resa.statut || 'en_attente';
+        const estEnAttente = statut === 'en_attente';
+        const choixActuel = adminChoices[resa.id] !== undefined ? adminChoices[resa.id] : (estEnAttente ? true : (statut === 'validee'));
 
         let statutBadge = '';
-        if (resa.statut === 'validee') statutBadge = `<span class="tag-statut tag-validee">Validée</span>`;
-        else if (resa.statut === 'refusee') statutBadge = `<span class="tag-statut tag-refusee">Refusée</span>`;
+        if (statut === 'validee') statutBadge = `<span class="tag-statut tag-validee">Validée</span>`;
+        else if (statut === 'refusee') statutBadge = `<span class="tag-statut tag-refusee">Refusée</span>`;
         else statutBadge = `<span class="tag-statut" style="background:#fef3c7; color:#92400e;">En attente</span>`;
 
         html += `
           <div class="group-card">
             <div class="group-header">
               <div>
-                <span class="group-user-info">👤 ${resa.prenom} ${resa.nom} (${resa.niveau})</span><br>
-                <span style="font-size: 0.8rem; color: var(--text-muted);">📧 ${resa.email}</span>
+                <span class="group-user-info">👤 ${resa.prenom || ''} ${resa.nom || ''} (${resa.niveau || 'N/A'})</span><br>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">📧 ${resa.email || 'N/A'}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 ${statutBadge}
@@ -1038,32 +1040,34 @@
               <strong style="font-size: 0.85rem; color: var(--text-muted);">Matériel demandé :</strong>
         `;
 
-        resa.items.forEach(it => {
-          const keyQte = `${resa.id}_${it.id}`;
-          const qteActuelleChoisie = adminQuantities[keyQte] !== undefined ? adminQuantities[keyQte] : it.quantite;
+        if (resa.items && Array.isArray(resa.items)) {
+          resa.items.forEach(it => {
+            const keyQte = `${resa.id}_${it.id}`;
+            const qteActuelleChoisie = adminQuantities[keyQte] !== undefined ? adminQuantities[keyQte] : it.quantite;
 
-          let optionModifQte = '';
-          if (estEnAttente) {
-            optionModifQte = `
-              <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Attribution :</span>
-                <input type="number" min="0" max="${it.quantite}" value="${qteActuelleChoisie}" 
-                  onchange="changerQuantiteAdmin('${resa.id}', '${it.id}', this.value)" 
-                  style="width: 60px; padding: 2px 6px; font-size: 0.8rem;">
-                <span style="font-size: 0.75rem; color: var(--text-muted);">/ demandé (${it.quantite})</span>
+            let optionModifQte = '';
+            if (estEnAttente) {
+              optionModifQte = `
+                <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">Attribution :</span>
+                  <input type="number" min="0" max="${it.quantite}" value="${qteActuelleChoisie}" 
+                    onchange="changerQuantiteAdmin('${resa.id}', '${it.id}', this.value)" 
+                    style="width: 60px; padding: 2px 6px; font-size: 0.8rem;">
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">/ demandé (${it.quantite})</span>
+                </div>
+              `;
+            } else {
+              optionModifQte = `<span style="font-size: 0.8rem; color: var(--text-muted);">Qté attribuée : <strong>${it.quantite}</strong></span>`;
+            }
+
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                <span>📦 <strong>${it.nom}</strong></span>
+                ${optionModifQte}
               </div>
             `;
-          } else {
-            optionModifQte = `<span style="font-size: 0.8rem; color: var(--text-muted);">Qté attribuée : <strong>${it.quantite}</strong></span>`;
-          }
-
-          html += `
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
-              <span>📦 <strong>${it.nom}</strong></span>
-              ${optionModifQte}
-            </div>
-          `;
-        });
+          });
+        }
 
         html += `</div>`;
 
