@@ -185,7 +185,6 @@
     button.danger:hover { background: #fee2e2; }
     button.qty-btn { padding: 4px 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; }
 
-    /* Menu 3 points administration article */
     .item-menu-container {
       position: relative;
       display: inline-block;
@@ -272,22 +271,6 @@
     .group-user-info { font-weight: 600; font-size: 0.9rem; }
     .group-date { color: var(--text-muted); font-size: 0.8rem; }
 
-    .item-choice-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 10px 0;
-      border-bottom: 1px dashed #f1f5f9;
-    }
-    .item-choice-main {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    @media(min-width: 640px) {
-      .item-choice-main { flex-direction: row; justify-content: space-between; align-items: center; }
-    }
-
     .btn-toggle-validee { background: var(--success-bg) !important; color: var(--success-text) !important; border-color: #bbf7d0 !important; font-weight: 600; }
     .btn-toggle-refusee { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fecaca !important; font-weight: 600; }
 
@@ -298,6 +281,10 @@
     .admin-tab-group { display: flex; gap: 4px; overflow-x: auto; width: 100%; }
     .admin-tab-btn { background: none; border: none; font-weight: 600; color: var(--text-muted); padding: 6px 10px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
     .admin-tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); border-radius: 0; }
+
+    .tag-statut { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+    .tag-validee { background: var(--success-bg); color: var(--success-text); }
+    .tag-refusee { background: #fee2e2; color: #b91c1c; }
 
     .cart-add-box { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
     .hidden { display: none !important; }
@@ -453,7 +440,7 @@
         <div style="display: flex; gap: 10px; margin-bottom: 16px;">
           <div style="flex: 1;">
             <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Stock Total :</label>
-            <input type="number" id="editTotal" min="0" required oninput="calculerNouveauDispoAjuste()">
+            <input type="number" id="editTotal" min="0" required>
           </div>
           <div style="flex: 1;">
             <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Stock Dispo:</label>
@@ -673,8 +660,28 @@
         audioNotif.play().catch(e => console.log("Audio bloqué:", e));
       }
       reservationsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      verifierEtAppliquerStocksDuJour();
       afficherReservationsAdmin();
     });
+
+    async function verifierEtAppliquerStocksDuJour() {
+      const aujourdhuiStr = new Date().toISOString().split('T')[0];
+
+      for (const resa of reservationsData) {
+        if (resa.statut === 'validee' && !resa.stockDecompte && resa.dateDebut <= aujourdhuiStr) {
+          for (const it of resa.items) {
+            if (it.quantite > 0) {
+              const matRef = materielsData.find(m => m.id === it.id);
+              if (matRef) {
+                const nouveauDispo = Math.max(0, (matRef.quantiteDispo ?? 0) - it.quantite);
+                await updateDoc(doc(db, "materiel", it.id), { quantiteDispo: nouveauDispo });
+              }
+            }
+          }
+          await updateDoc(doc(db, "reservations", resa.id), { stockDecompte: true });
+        }
+      }
+    }
 
     window.afficherMateriel = () => {
       const container = document.getElementById('materielList');
@@ -769,11 +776,6 @@
       document.getElementById('editModal').classList.add('hidden');
     };
 
-    window.calculerNouveauDispoAjuste = () => {
-      const ancienTotal = parseInt(document.getElementById('editTotal').dataset.oldTotal) || 0;
-      // Optionnel si l'on souhaite ajuster proportionnellement
-    };
-
     window.enregistrerModificationMateriel = async (e) => {
       e.preventDefault();
       const id = document.getElementById('editItemId').value;
@@ -829,7 +831,6 @@
       }
     };
 
-    // Gestion du Panier
     window.ouvrirModalPanier = () => {
       document.getElementById('cartModal').classList.remove('hidden');
       afficherContenuPanier();
@@ -936,7 +937,6 @@
         return;
       }
 
-      // Vérification date min (demain)
       const demain = new Date();
       demain.setDate(demain.getDate() + 1);
       demain.setHours(0,0,0,0);
@@ -958,6 +958,7 @@
         dateFin: dateFin,
         items: [...panier],
         statut: 'en_attente',
+        stockDecompte: false,
         dateCreation: new Date().toISOString()
       };
 
@@ -985,8 +986,11 @@
       if (!currentUser) return;
 
       const filtrees = reservationsData.filter(r => {
-        if (activeAdminTab === 'attente') return r.statut === 'en_attente';
-        return r.statut && r.statut !== 'en_attente';
+        if (activeAdminTab === 'attente') {
+          return !r.statut || r.statut === 'en_attente';
+        } else {
+          return r.statut && r.statut !== 'en_attente';
+        }
       });
 
       if (filtrees.length === 0) {
@@ -994,13 +998,12 @@
         return;
       }
 
-      // Tri par date décroissante
       filtrees.sort((a, b) => new Date(b.dateCreation) - new Date(a.dateCreation));
 
       let html = `<div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">`;
 
       filtrees.forEach(resa => {
-        const estEnAttente = resa.statut === 'en_attente';
+        const estEnAttente = !resa.statut || resa.statut === 'en_attente';
         const choixActuel = adminChoices[resa.id] !== undefined ? adminChoices[resa.id] : (estEnAttente ? true : (resa.statut === 'validee'));
 
         let statutBadge = '';
@@ -1086,7 +1089,6 @@
 
     window.setAdminChoix = (resaId, choix) => {
       adminChoices[resaId] = choix;
-      // Visuel basique des boutons
       const card = document.getElementById(`motif-${resaId}`)?.closest('.group-card');
       if (card) {
         const btnV = card.querySelector('.btn-toggle-validee');
@@ -1109,7 +1111,6 @@
       const statutFinal = choixValide ? 'validee' : 'refusee';
       const motif = adminMotifs[resaId] || '';
 
-      // Construction des items mis à jour avec les quantités allouées
       const itemsFinal = resa.items.map(it => {
         const keyQte = `${resaId}_${it.id}`;
         const qteAllouee = adminQuantities[keyQte] !== undefined ? adminQuantities[keyQte] : it.quantite;
@@ -1117,8 +1118,10 @@
       });
 
       try {
-        // 1. Mise à jour du stock si validée
-        if (statutFinal === 'validee') {
+        const aujourdhuiStr = new Date().toISOString().split('T')[0];
+        let stockImmediatImpacte = false;
+
+        if (statutFinal === 'validee' && resa.dateDebut <= aujourdhuiStr) {
           for (const it of itemsFinal) {
             if (it.quantite > 0) {
               const matRef = materielsData.find(m => m.id === it.id);
@@ -1128,16 +1131,16 @@
               }
             }
           }
+          stockImmediatImpacte = true;
         }
 
-        // 2. Mise à jour de la réservation dans Firestore
         await updateDoc(doc(db, "reservations", resaId), {
           statut: statutFinal,
           items: itemsFinal,
-          motifRefusOuRemarque: motif
+          motifRefusOuRemarque: motif,
+          stockDecompte: stockImmediatImpacte
         });
 
-        // 3. Préparation et envoi de l'e-mail structuré avec Emojis via EmailJS
         let listeMaterielHtml = "";
         let texteMoinsMateriel = false;
 
@@ -1176,7 +1179,6 @@
           messageCorpsDetail += `N'hésitez pas à repasser sur la plateforme ou à venir directement nous voir sur place pour trouver une alternative. 💡`;
         }
 
-        // Message global de non-réponse intégré
         const messageCompletFinal = `${messageCorpsDetail}\n\n--------------------------------------------\n🤖 *Ceci est un message automatique, merci de ne pas répondre à cet e-mail.*`;
 
         const templateParams = {
@@ -1185,12 +1187,23 @@
           message: messageCompletFinal
         };
 
-        // Envoi via l'ID de service et template EmailJS par défaut ou configuré
         await emailjs.send('service_fz68jl1', 'template_pqtasnz', templateParams);
-
         alert("Traitement effectué et e-mail envoyé avec succès !");
       } catch (err) {
         alert("Erreur lors du traitement : " + err.message);
+      }
+    };
+
+    window.viderHistorique = async () => {
+      if (!confirm("Voulez-vous vraiment supprimer tout l'historique des réservations traitées ?")) return;
+      try {
+        const passees = reservationsData.filter(r => r.statut && r.statut !== 'en_attente');
+        for (const p of passees) {
+          await deleteDoc(doc(db, "reservations", p.id));
+        }
+        alert("Historique vidé avec succès !");
+      } catch (err) {
+        alert("Erreur lors de la suppression de l'historique : " + err.message);
       }
     };
   </script>
