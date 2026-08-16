@@ -250,14 +250,6 @@
       margin-bottom: 16px;
     }
 
-    .resa-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-    .resa-table th, .resa-table td { padding: 8px; border-bottom: 1px solid var(--border-color); text-align: left; }
-    .resa-table th { background: #f8fafc; color: var(--text-muted); font-weight: 600; }
-
-    .tag-statut { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
-    .tag-validee { background: #dcfce7; color: #15803d; }
-    .tag-refusee { background: #fee2e2; color: #b91c1c; }
-
     .group-card {
       background: #ffffff;
       border: 1px solid var(--border-color);
@@ -430,7 +422,7 @@
     </main>
   </div>
 
-  <!-- MODALE MODIFICATION MATERIEL (3 points -> Modifier) -->
+  <!-- MODALE MODIFICATION MATERIEL -->
   <div id="editModal" class="modal-overlay hidden">
     <div class="modal-content" style="max-width: 450px;">
       <div class="modal-header">
@@ -640,7 +632,6 @@
         const menu = document.getElementById('categoryDropdownMenu');
         if (menu) menu.classList.add('hidden');
       }
-      // Fermer les menus 3 points si clic ailleurs
       if (!e.target.closest('.item-menu-container')) {
         document.querySelectorAll('.item-dropdown-menu').forEach(m => m.classList.add('hidden'));
       }
@@ -716,7 +707,6 @@
               <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo - 1}, ${stockTotal})" ${stockDispo <= 0 ? 'disabled' : ''}>-1</button>
               <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo + 1}, ${stockTotal})" ${stockDispo >= stockTotal ? 'disabled' : ''}>+1</button>
               
-              <!-- Menu 3 points administration -->
               <div class="item-menu-container">
                 <button class="menu-dots-btn" onclick="toggleItemMenu(event, '${item.id}')">⋮</button>
                 <ul class="item-dropdown-menu hidden" id="menu-${item.id}">
@@ -763,17 +753,14 @@
       if (menu) menu.classList.toggle('hidden');
     };
 
-    // Gestion de la modale de modification d'un équipement
     window.ouvrirModalEdit = (id) => {
       const item = materielsData.find(m => m.id === id);
       if (!item) return;
-
       document.getElementById('editItemId').value = item.id;
       document.getElementById('editNom').value = item.nom;
-      document.getElementById('editCategorie').value = item.categorie || 'Autres';
+      document.getElementById('editCategorie').value = item.categorie;
       document.getElementById('editTotal').value = item.quantiteTotal ?? 1;
-      document.getElementById('editDispo').value = item.quantiteDispo ?? 1;
-
+      document.getElementById('editDispo').value = item.quantiteDispo ?? 0;
       document.getElementById('editModal').classList.remove('hidden');
       document.querySelectorAll('.item-dropdown-menu').forEach(m => m.classList.add('hidden'));
     };
@@ -783,414 +770,429 @@
     };
 
     window.calculerNouveauDispoAjuste = () => {
-      // Optionnel : si le stock total augmente (nouvel arrivage), on peut ajuster automatiquement ou laisser le gestionnaire choisir.
+      const ancienTotal = parseInt(document.getElementById('editTotal').dataset.oldTotal) || 0;
+      // Optionnel si l'on souhaite ajuster proportionnellement
     };
 
     window.enregistrerModificationMateriel = async (e) => {
       e.preventDefault();
       const id = document.getElementById('editItemId').value;
-      const nom = document.getElementById('editNom').value.trim();
+      const nom = document.getElementById('editNom').value;
       const categorie = document.getElementById('editCategorie').value;
-      const quantiteTotal = parseInt(document.getElementById('editTotal').value, 10);
-      const quantiteDispo = parseInt(document.getElementById('editDispo').value, 10);
-
-      if (!nom || isNaN(quantiteTotal) || isNaN(quantiteDispo)) {
-        alert("Veuillez remplir correctement tous les champs.");
-        return;
-      }
-
-      if (quantiteDispo > quantiteTotal) {
-        alert("Le stock disponible ne peut pas être supérieur au stock total.");
-        return;
-      }
+      const quantiteTotal = parseInt(document.getElementById('editTotal').value);
+      const quantiteDispo = parseInt(document.getElementById('editDispo').value);
 
       try {
         await updateDoc(doc(db, "materiel", id), {
-          nom,
-          categorie,
-          quantiteTotal,
-          quantiteDispo
+          nom, categorie, quantiteTotal, quantiteDispo
         });
         fermerModalEdit();
-        alert("Équipement mis à jour avec succès !");
       } catch (err) {
-        console.error("Erreur modification:", err);
         alert("Erreur lors de la modification : " + err.message);
       }
     };
 
-    window.ajouterAuPanier = (id, nom, stockMax) => {
-      const qteInput = document.getElementById(`qty-${id}`);
-      const qte = parseInt(qteInput.value, 10);
-
-      if (qte > stockMax) {
-        alert(`Seulement ${stockMax} unités disponibles en stock !`);
-        return;
-      }
-
-      const index = panier.findIndex(p => p.id === id);
-      if (index > -1) {
-        if (panier[index].quantite + qte > stockMax) {
-          alert(`Vous ne pouvez pas réserver plus que la quantité disponible (${stockMax}).`);
-          return;
+    window.supprimerMateriel = async (id) => {
+      if (confirm("Voulez-vous vraiment supprimer cet équipement ?")) {
+        try {
+          await deleteDoc(doc(db, "materiel", id));
+        } catch (err) {
+          alert("Erreur lors de la suppression : " + err.message);
         }
-        panier[index].quantite += qte;
-      } else {
-        panier.push({ id, nom, quantite: qte });
-      }
-
-      sauvegarderPanier();
-    };
-
-    window.ouvrirModalPanier = () => {
-      const cartDateInput = document.getElementById('cartDate');
-      const demain = new Date();
-      demain.setDate(demain.getDate() + 1);
-      const minDateStr = demain.toISOString().split('T')[0];
-      
-      cartDateInput.min = minDateStr;
-      if (!cartDateInput.value || cartDateInput.value < minDateStr) {
-        cartDateInput.value = minDateStr;
-      }
-
-      afficherContenuPanier();
-      document.getElementById('cartModal').classList.remove('hidden');
-    };
-
-    window.fermerModalPanier = () => document.getElementById('cartModal').classList.add('hidden');
-
-    function afficherContenuPanier() {
-      const container = document.getElementById('cartContent');
-      const formContainer = document.getElementById('cartFormContainer');
-
-      if (panier.length === 0) {
-        container.innerHTML = "<p style='color:var(--text-muted); text-align:center; margin: 15px 0;'>Votre panier est vide.</p>";
-        formContainer.classList.add('hidden');
-        return;
-      }
-
-      let html = `
-        <table class="resa-table">
-          <thead>
-            <tr>
-              <th>Matériel</th>
-              <th>Qté</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      panier.forEach((item, idx) => {
-        html += `
-          <tr>
-            <td><strong>${item.nom}</strong></td>
-            <td>${item.quantite}</td>
-            <td><button class="danger" style="padding:2px 6px; font-size:0.7rem;" onclick="retirerDuPanier(${idx})">X</button></td>
-          </tr>
-        `;
-      });
-
-      html += "</tbody></table>";
-      container.innerHTML = html;
-      formContainer.classList.remove('hidden');
-    }
-
-    window.retirerDuPanier = (index) => {
-      panier.splice(index, 1);
-      sauvegarderPanier();
-      afficherContenuPanier();
-    };
-
-    window.validerPanierDirectement = async () => {
-      const submitBtn = document.getElementById('btnSubmitCart');
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Envoi en cours...";
-
-      const typePret = document.getElementById('cartTypePret').value;
-      const date = document.getElementById('cartDate').value;
-      const nom = document.getElementById('studentNom').value.trim();
-      const prenom = document.getElementById('studentPrenom').value.trim();
-      const niveau = document.getElementById('studentNiveau').value;
-      const email = document.getElementById('studentEmail').value.trim();
-
-      const aujourdhuiStr = new Date().toISOString().split('T')[0];
-      if (date <= aujourdhuiStr) {
-        alert("La réservation doit être faite pour un jour ultérieur.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Envoyer la réservation";
-        return;
-      }
-
-      if (!date || !nom || !prenom || !niveau || !email || panier.length === 0) {
-        alert("Veuillez remplir tous les champs.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Envoyer la réservation";
-        return;
-      }
-
-      try {
-        const groupId = `group_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-
-        for (const item of panier) {
-          await addDoc(collection(db, "reservations"), {
-            groupId: groupId,
-            materielId: item.id,
-            materielNom: item.nom,
-            quantite: item.quantite,
-            typePret: typePret,
-            studentNom: nom,
-            studentPrenom: prenom,
-            studentNiveau: niveau,
-            studentEmail: email,
-            dateEmprunt: date,
-            statut: "en_attente",
-            createdAt: new Date().toISOString()
-          });
-        }
-
-        afficherNotificationGlobale();
-        panier = [];
-        sauvegarderPanier();
-        fermerModalPanier();
-
-      } catch (err) {
-        console.error("Erreur d'envoi :", err);
-        alert("Erreur lors de l'envoi : " + err.message);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Envoyer la réservation";
-      }
-    };
-
-    window.changerOngletAdmin = (tab) => {
-      activeAdminTab = tab;
-      document.getElementById('tabAttenteBtn').classList.toggle('active', tab === 'attente');
-      document.getElementById('tabHistoriqueBtn').classList.toggle('active', tab === 'historique');
-      document.getElementById('clearHistoryBtn').classList.toggle('hidden', tab !== 'historique');
-      afficherReservationsAdmin();
-    };
-
-    function afficherReservationsAdmin() {
-      const container = document.getElementById('reservationsList');
-      if (!container) return;
-
-      const filtered = reservationsData.filter(r => {
-        if (activeAdminTab === 'attente') return r.statut === 'en_attente';
-        return r.statut === 'validee' || r.statut === 'refusee';
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; margin: 10px 0;">Aucune demande pour le moment.</p>`;
-        return;
-      }
-
-      const groups = {};
-      filtered.forEach(r => {
-        const gId = r.groupId || r.id;
-        if (!groups[gId]) {
-          groups[gId] = {
-            groupId: gId,
-            studentNom: r.studentNom,
-            studentPrenom: r.studentPrenom,
-            studentNiveau: r.studentNiveau,
-            studentEmail: r.studentEmail,
-            dateEmprunt: r.dateEmprunt,
-            typePret: r.typePret,
-            createdAt: r.createdAt,
-            items: []
-          };
-        }
-        groups[gId].items.push(r);
-      });
-
-      let html = "";
-      Object.values(groups).forEach(group => {
-        const dateFormatee = formatDateFR(group.dateEmprunt);
-        const dateFin = group.typePret === 'long' ? ajouterJoursDate(group.dateEmprunt, 7) : ajouterJoursDate(group.dateEmprunt, 1);
-        const dateFinFormatee = formatDateFR(dateFin);
-
-        html += `
-          <div class="group-card">
-            <div class="group-header">
-              <div class="group-user-info">
-                👤 ${group.studentNom} ${group.studentPrenom} (${group.studentNiveau}) - <a href="mailto:${group.studentEmail}">${group.studentEmail}</a>
-              </div>
-              <div class="group-date">
-                📅 Du ${dateFormatee} au ${dateFinFormatee} (${group.typePret === 'long' ? 'Prêt long 7j' : 'Prêt court 1j'})
-              </div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-        `;
-
-        group.items.forEach(item => {
-          const statutTag = item.statut === 'validee' 
-            ? `<span class="tag-statut tag-validee">Validée</span>` 
-            : item.statut === 'refusee' 
-            ? `<span class="tag-statut tag-refusee">Refusée</span>` 
-            : `<span class="tag-statut" style="background:#fef3c7; color:#92400e;">En attente</span>`;
-
-          let actionsOrStatus = "";
-          if (activeAdminTab === 'attente') {
-            const currentChoice = adminChoices[item.id] || 'validee';
-            const currentQty = adminQuantities[item.id] !== undefined ? adminQuantities[item.id] : item.quantite;
-            const currentMotif = adminMotifs[item.id] || '';
-
-            actionsOrStatus = `
-              <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px;">
-                <button type="button" class="${currentChoice === 'validee' ? 'btn-toggle-validee' : ''}" onclick="setAdminChoice('${item.id}', 'validee')">Valider</button>
-                <button type="button" class="${currentChoice === 'refusee' ? 'btn-toggle-refusee' : ''}" onclick="setAdminChoice('${item.id}', 'refusee')">Refuser</button>
-                <input type="number" value="${currentQty}" min="1" max="${item.quantite}" style="width: 60px; padding: 4px;" onchange="setAdminQty('${item.id}', this.value)" title="Quantité accordée">
-                <input type="text" value="${currentMotif}" placeholder="Motif (si refus/modif)..." style="flex-grow: 1; padding: 4px 8px; font-size: 0.8rem;" oninput="setAdminMotif('${item.id}', this.value)">
-                <button class="primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="traiterReservation('${item.id}', '${group.groupId}')">Appliquer</button>
-              </div>
-            `;
-          } else {
-            actionsOrStatus = `
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
-                <div>${statutTag} ${item.motif ? `<span style="font-size:0.8rem; color:var(--text-muted); margin-left:8px;">(${item.motif})</span>` : ''}</div>
-                <button class="danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="supprimerReservationItem('${item.id}')">Supprimer de l'historique</button>
-              </div>
-            `;
-          }
-
-          html += `
-            <div class="item-choice-row">
-              <div class="item-choice-main">
-                <div><strong>${item.materielNom}</strong> (Demandé: ${item.quantite})</div>
-                <div>${activeAdminTab === 'attente' ? statutTag : ''}</div>
-              </div>
-              ${actionsOrStatus}
-            </div>
-          `;
-        });
-
-        html += `</div></div>`;
-      });
-
-      container.innerHTML = html;
-    }
-
-    window.setAdminChoice = (id, choice) => {
-      adminChoices[id] = choice;
-      afficherReservationsAdmin();
-    };
-
-    window.setAdminQty = (id, qty) => {
-      adminQuantities[id] = parseInt(qty, 10);
-    };
-
-    window.setAdminMotif = (id, motif) => {
-      adminMotifs[id] = motif;
-    };
-
-    window.traiterReservation = async (reservationId, groupId) => {
-      const choice = adminChoices[reservationId] || 'validee';
-      const qtyAccordee = adminQuantities[reservationId] !== undefined ? adminQuantities[reservationId] : null;
-      const motif = adminMotifs[reservationId] || '';
-
-      const r = reservationsData.find(item => item.id === reservationId);
-      if (!r) return;
-
-      const finalQty = qtyAccordee !== null ? qtyAccordee : r.quantite;
-
-      try {
-        await updateDoc(doc(db, "reservations", reservationId), {
-          statut: choice === 'validee' ? 'validee' : 'refusee',
-          quantiteAccordee: finalQty,
-          motif: motif
-        });
-
-        if (choice === 'validee') {
-          const mat = materielsData.find(m => m.id === r.materielId);
-          if (mat) {
-            const nouveauStock = Math.max(0, (mat.quantiteDispo ?? mat.quantiteTotal) - finalQty);
-            await updateDoc(doc(db, "materiel", r.materielId), {
-              quantiteDispo: nouveauStock
-            });
-          }
-        }
-
-        if (typeof emailjs !== 'undefined') {
-          const templateParams = {
-            to_email: r.studentEmail,
-            to_name: `${r.studentPrenom} ${r.studentNom}`,
-            message: `Votre demande pour ${r.materielNom} a été ${choice === 'validee' ? 'validée' : 'refusée'}.${motif ? ' Motif : ' + motif : ''}`
-          };
-          emailjs.send("service_fz68jl1", "template_pqtasnz", templateParams).catch(err => console.error("EmailJS error:", err));
-        }
-
-        alert("Traitement enregistré avec succès !");
-      } catch (err) {
-        console.error("Erreur traitement :", err);
-        alert("Erreur : " + err.message);
-      }
-    };
-
-    window.supprimerReservationItem = async (id) => {
-      if (!confirm("Voulez-vous supprimer cet élément de l'historique ?")) return;
-      try {
-        await deleteDoc(doc(db, "reservations", id));
-      } catch (err) {
-        alert("Erreur : " + err.message);
-      }
-    };
-
-    window.viderHistorique = async () => {
-      if (!confirm("Voulez-vous vider tout l'historique des réservations traitées ?")) return;
-      try {
-        const toDelete = reservationsData.filter(r => r.statut === 'validee' || r.statut === 'refusee');
-        for (const item of toDelete) {
-          await deleteDoc(doc(db, "reservations", item.id));
-        }
-        alert("Historique vidé.");
-      } catch (err) {
-        alert("Erreur : " + err.message);
-      }
-    };
-
-    window.ajouterMateriel = async (e) => {
-      e.preventDefault();
-      const nom = document.getElementById('nomMateriel').value.trim();
-      const categorie = document.getElementById('categorieMateriel').value;
-      const quantite = parseInt(document.getElementById('quantiteInitiale').value, 10);
-
-      if (!nom || !categorie || isNaN(quantite)) return;
-
-      try {
-        await addDoc(collection(db, "materiel"), {
-          nom,
-          categorie,
-          quantiteTotal: quantite,
-          quantiteDispo: quantite
-        });
-        document.getElementById('addHardwareForm').reset();
-        alert("Équipement ajouté au stock avec succès !");
-      } catch (err) {
-        alert("Erreur : " + err.message);
       }
     };
 
     window.modifierStock = async (id, nouveauDispo, total) => {
       if (nouveauDispo < 0 || nouveauDispo > total) return;
       try {
-        await updateDoc(doc(db, "materiel", id), {
-          quantiteDispo: nouveauDispo
+        await updateDoc(doc(db, "materiel", id), { quantiteDispo: nouveauDispo });
+      } catch (err) {
+        console.error("Erreur MAJ stock:", err);
+      }
+    };
+
+    window.ajouterMateriel = async (e) => {
+      e.preventDefault();
+      const nom = document.getElementById('nomMateriel').value;
+      const categorie = document.getElementById('categorieMateriel').value;
+      const quantiteInitiale = parseInt(document.getElementById('quantiteInitiale').value);
+
+      try {
+        await addDoc(collection(db, "materiel"), {
+          nom, categorie,
+          quantiteTotal: quantiteInitiale,
+          quantiteDispo: quantiteInitiale
         });
+        document.getElementById('addHardwareForm').reset();
       } catch (err) {
         alert("Erreur : " + err.message);
       }
     };
 
-    window.supprimerMateriel = async (id) => {
-      if (!confirm("Voulez-vous supprimer cet équipement du catalogue ?")) return;
+    // Gestion du Panier
+    window.ouvrirModalPanier = () => {
+      document.getElementById('cartModal').classList.remove('hidden');
+      afficherContenuPanier();
+    };
+
+    window.fermerModalPanier = () => {
+      document.getElementById('cartModal').classList.add('hidden');
+    };
+
+    window.ajouterAuPanier = (id, nom, maxDispo) => {
+      const qInput = document.getElementById(`qty-${id}`);
+      const qteDemandee = parseInt(qInput.value) || 1;
+
+      const itemExistant = panier.find(i => i.id === id);
+      const qteActuelleDansPanier = itemExistant ? itemExistant.quantite : 0;
+
+      if (qteActuelleDansPanier + qteDemandee > maxDispo) {
+        alert("Quantité demandée supérieure au stock disponible.");
+        return;
+      }
+
+      if (itemExistant) {
+        itemExistant.quantite += qteDemandee;
+      } else {
+        panier.push({ id, nom, quantite: qteDemandee });
+      }
+
+      sauvegarderPanier();
+      afficherNotificationGlobalePanier("Équipement ajouté au panier !");
+    };
+
+    function afficherNotificationGlobalePanier(texte) {
+      const notif = document.getElementById("notification-globale");
+      notif.textContent = texte;
+      notif.className = "show";
+      setTimeout(() => { notif.className = ""; }, 3000);
+    }
+
+    window.modifierQuantitePanier = (id, delta) => {
+      const item = panier.find(i => i.id === id);
+      if (!item) return;
+      const materielRef = materielsData.find(m => m.id === id);
+      const maxDispo = materielRef ? materielRef.quantiteDispo : 99;
+
+      item.quantite += delta;
+      if (item.quantite <= 0) {
+        panier = panier.filter(i => i.id !== id);
+      } else if (item.quantite > maxDispo) {
+        item.quantite = maxDispo;
+      }
+      sauvegarderPanier();
+      afficherContenuPanier();
+    };
+
+    window.supprimerDuPanier = (id) => {
+      panier = panier.filter(i => i.id !== id);
+      sauvegarderPanier();
+      afficherContenuPanier();
+    };
+
+    window.afficherContenuPanier = () => {
+      const container = document.getElementById('cartContent');
+      const formContainer = document.getElementById('cartFormContainer');
+
+      if (panier.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px 0;">Votre panier est vide.</p>`;
+        formContainer.classList.add('hidden');
+        return;
+      }
+
+      formContainer.classList.remove('hidden');
+      let html = `<div style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">`;
+      panier.forEach(item => {
+        html += `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div>
+              <span style="font-weight: 600; font-size: 0.9rem;">${item.nom}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="qty-btn" onclick="modifierQuantitePanier('${item.id}', -1)">-</button>
+              <span style="font-weight: 600; font-size: 0.85rem;">${item.quantite}</span>
+              <button class="qty-btn" onclick="modifierQuantitePanier('${item.id}', 1)">+</button>
+              <button class="danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="supprimerDuPanier('${item.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    };
+
+    window.validerPanierDirectement = async () => {
+      if (panier.length === 0) return;
+
+      const typePret = document.getElementById('cartTypePret').value;
+      const datePret = document.getElementById('cartDate').value;
+      const nom = document.getElementById('studentNom').value.trim();
+      const prenom = document.getElementById('studentPrenom').value.trim();
+      const niveau = document.getElementById('studentNiveau').value;
+      const email = document.getElementById('studentEmail').value.trim();
+
+      if (!datePret || !nom || !prenom || !niveau || !email) {
+        alert("Veuillez remplir tous les champs du formulaire.");
+        return;
+      }
+
+      // Vérification date min (demain)
+      const demain = new Date();
+      demain.setDate(demain.getDate() + 1);
+      demain.setHours(0,0,0,0);
+      const dateChoisieObj = new Date(datePret);
+      dateChoisieObj.setHours(0,0,0,0);
+
+      if (dateChoisieObj < demain) {
+        alert("Les réservations anticipées doivent commencer à partir de demain minimum.");
+        return;
+      }
+
+      const dureeJours = typePret === 'long' ? 7 : 1;
+      const dateFin = ajouterJoursDate(datePret, dureeJours);
+
+      const nouvelleResa = {
+        nom, prenom, niveau, email,
+        typePret,
+        dateDebut: datePret,
+        dateFin: dateFin,
+        items: [...panier],
+        statut: 'en_attente',
+        dateCreation: new Date().toISOString()
+      };
+
       try {
-        await deleteDoc(doc(db, "materiel", id));
+        await addDoc(collection(db, "reservations"), nouvelleResa);
+        panier = [];
+        sauvegarderPanier();
+        fermerModalPanier();
+        afficherNotificationGlobale();
       } catch (err) {
-        alert("Erreur : " + err.message);
+        alert("Erreur lors de l'enregistrement de la réservation : " + err.message);
+      }
+    };
+
+    window.changerOngletAdmin = (onglet) => {
+      activeAdminTab = onglet;
+      document.getElementById('tabAttenteBtn').classList.toggle('active', onglet === 'attente');
+      document.getElementById('tabHistoriqueBtn').classList.toggle('active', onglet === 'historique');
+      document.getElementById('clearHistoryBtn').classList.toggle('hidden', onglet !== 'historique');
+      afficherReservationsAdmin();
+    };
+
+    window.afficherReservationsAdmin = () => {
+      const container = document.getElementById('reservationsList');
+      if (!currentUser) return;
+
+      const filtrees = reservationsData.filter(r => {
+        if (activeAdminTab === 'attente') return r.statut === 'en_attente';
+        return r.statut && r.statut !== 'en_attente';
+      });
+
+      if (filtrees.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 10px 0;">Aucune demande pour le moment.</p>`;
+        return;
+      }
+
+      // Tri par date décroissante
+      filtrees.sort((a, b) => new Date(b.dateCreation) - new Date(a.dateCreation));
+
+      let html = `<div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">`;
+
+      filtrees.forEach(resa => {
+        const estEnAttente = resa.statut === 'en_attente';
+        const choixActuel = adminChoices[resa.id] !== undefined ? adminChoices[resa.id] : (estEnAttente ? true : (resa.statut === 'validee'));
+
+        let statutBadge = '';
+        if (resa.statut === 'validee') statutBadge = `<span class="tag-statut tag-validee">Validée</span>`;
+        else if (resa.statut === 'refusee') statutBadge = `<span class="tag-statut tag-refusee">Refusée</span>`;
+        else statutBadge = `<span class="tag-statut" style="background:#fef3c7; color:#92400e;">En attente</span>`;
+
+        html += `
+          <div class="group-card">
+            <div class="group-header">
+              <div>
+                <span class="group-user-info">👤 ${resa.prenom} ${resa.nom} (${resa.niveau})</span><br>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">📧 ${resa.email}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                ${statutBadge}
+                <span class="group-date">📅 Du ${formatDateFR(resa.dateDebut)} au ${formatDateFR(resa.dateFin)} (${resa.typePret === 'long' ? 'Prêt long' : 'Prêt court'})</span>
+              </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+              <strong style="font-size: 0.85rem; color: var(--text-muted);">Matériel demandé :</strong>
+        `;
+
+        resa.items.forEach(it => {
+          const keyQte = `${resa.id}_${it.id}`;
+          const qteActuelleChoisie = adminQuantities[keyQte] !== undefined ? adminQuantities[keyQte] : it.quantite;
+
+          let optionModifQte = '';
+          if (estEnAttente) {
+            optionModifQte = `
+              <div style="display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Attribution :</span>
+                <input type="number" min="0" max="${it.quantite}" value="${qteActuelleChoisie}" 
+                  onchange="changerQuantiteAdmin('${resa.id}', '${it.id}', this.value)" 
+                  style="width: 60px; padding: 2px 6px; font-size: 0.8rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">/ demandé (${it.quantite})</span>
+              </div>
+            `;
+          } else {
+            optionModifQte = `<span style="font-size: 0.8rem; color: var(--text-muted);">Qté attribuée : <strong>${it.quantite}</strong></span>`;
+          }
+
+          html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+              <span>📦 <strong>${it.nom}</strong></span>
+              ${optionModifQte}
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+
+        if (estEnAttente) {
+          const motifActuel = adminMotifs[resa.id] || '';
+          html += `
+            <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn-toggle-validee" style="flex: 1;" onclick="setAdminChoix('${resa.id}', true)">✅ Valider</button>
+                <button type="button" class="btn-toggle-refusee" style="flex: 1;" onclick="setAdminChoix('${resa.id}', false)">❌ Refuser</button>
+              </div>
+              <input type="text" id="motif-${resa.id}" placeholder="Motif ou remarque (optionnel pour la validation/refus)..." value="${motifActuel}" oninput="changerMotifAdmin('${resa.id}', this.value)" style="font-size: 0.85rem;">
+              <button class="primary" style="width: 100%; margin-top: 4px;" onclick="traiterReservation('${resa.id}')">💾 Enregistrer & Envoyer l'e-mail</button>
+            </div>
+          `;
+        }
+
+        html += `</div>`;
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+    };
+
+    window.changerQuantiteAdmin = (resaId, itemId, val) => {
+      const key = `${resaId}_${itemId}`;
+      adminQuantities[key] = parseInt(val) || 0;
+    };
+
+    window.changerMotifAdmin = (resaId, val) => {
+      adminMotifs[resaId] = val;
+    };
+
+    window.setAdminChoix = (resaId, choix) => {
+      adminChoices[resaId] = choix;
+      // Visuel basique des boutons
+      const card = document.getElementById(`motif-${resaId}`)?.closest('.group-card');
+      if (card) {
+        const btnV = card.querySelector('.btn-toggle-validee');
+        const btnR = card.querySelector('.btn-toggle-refusee');
+        if (choix) {
+          btnV.style.outline = "2px solid var(--success-text)";
+          btnR.style.outline = "none";
+        } else {
+          btnR.style.outline = "2px solid var(--danger)";
+          btnV.style.outline = "none";
+        }
+      }
+    };
+
+    window.traiterReservation = async (resaId) => {
+      const resa = reservationsData.find(r => r.id === resaId);
+      if (!resa) return;
+
+      const choixValide = adminChoices[resaId] !== undefined ? adminChoices[resaId] : true;
+      const statutFinal = choixValide ? 'validee' : 'refusee';
+      const motif = adminMotifs[resaId] || '';
+
+      // Construction des items mis à jour avec les quantités allouées
+      const itemsFinal = resa.items.map(it => {
+        const keyQte = `${resaId}_${it.id}`;
+        const qteAllouee = adminQuantities[keyQte] !== undefined ? adminQuantities[keyQte] : it.quantite;
+        return { ...it, quantite: qteAllouee };
+      });
+
+      try {
+        // 1. Mise à jour du stock si validée
+        if (statutFinal === 'validee') {
+          for (const it of itemsFinal) {
+            if (it.quantite > 0) {
+              const matRef = materielsData.find(m => m.id === it.id);
+              if (matRef) {
+                const nouveauDispo = Math.max(0, (matRef.quantiteDispo ?? 0) - it.quantite);
+                await updateDoc(doc(db, "materiel", it.id), { quantiteDispo: nouveauDispo });
+              }
+            }
+          }
+        }
+
+        // 2. Mise à jour de la réservation dans Firestore
+        await updateDoc(doc(db, "reservations", resaId), {
+          statut: statutFinal,
+          items: itemsFinal,
+          motifRefusOuRemarque: motif
+        });
+
+        // 3. Préparation et envoi de l'e-mail structuré avec Emojis via EmailJS
+        let listeMaterielHtml = "";
+        let texteMoinsMateriel = false;
+
+        itemsFinal.forEach(it => {
+          const itemOriginal = resa.items.find(orig => orig.id === it.id);
+          const qteDemandeeInitiale = itemOriginal ? itemOriginal.quantite : it.quantite;
+
+          if (it.quantite < qteDemandeeInitiale) {
+            texteMoinsMateriel = true;
+            listeMaterielHtml += `• ${it.nom} : ${it.quantite} attribué(s) (au lieu de ${qteDemandeeInitiale} demandé(s) en raison des stocks disponibles)\n`;
+          } else {
+            listeMaterielHtml += `• ${it.nom} : ${it.quantite} exemplaire(s)\n`;
+          }
+        });
+
+        let messageCorpsDetail = "";
+        if (statutFinal === 'validee') {
+          messageCorpsDetail = `🎉 Excellente nouvelle ! Votre demande de réservation pour le matériel suivant a été **VALIDÉE** :\n\n` +
+            `📅 **Période :** Du ${formatDateFR(resa.dateDebut)} au ${formatDateFR(resa.dateFin)}\n\n` +
+            `📦 **Détail du matériel attribué :**\n${listeMaterielHtml}\n`;
+
+          if (texteMoinsMateriel) {
+            messageCorpsDetail += `⚠️ *Note importante :* Certains articles ont subi un ajustement de quantité à la baisse suite à nos disponibilités actuelles.\n\n`;
+          }
+
+          if (motif.trim() !== "") {
+            messageCorpsDetail += `💬 **Remarque de l'équipe :** ${motif}\n\n`;
+          }
+
+          messageCorpsDetail += `📍 Vous pourrez venir récupérer votre matériel au Bureau de Prêt aux dates indiquées.\nÀ très bientôt ! 👋`;
+        } else {
+          messageCorpsDetail = `❌ Malheureusement, votre demande de réservation du ${formatDateFR(resa.dateDebut)} n'a pas pu être acceptée.\n\n`;
+          if (motif.trim() !== "") {
+            messageCorpsDetail += `💬 **Motif :** ${motif}\n\n`;
+          }
+          messageCorpsDetail += `N'hésitez pas à repasser sur la plateforme ou à venir directement nous voir sur place pour trouver une alternative. 💡`;
+        }
+
+        // Message global de non-réponse intégré
+        const messageCompletFinal = `${messageCorpsDetail}\n\n--------------------------------------------\n🤖 *Ceci est un message automatique, merci de ne pas répondre à cet e-mail.*`;
+
+        const templateParams = {
+          to_email: resa.email,
+          to_name: `${resa.prenom} ${resa.nom}`,
+          message: messageCompletFinal
+        };
+
+        // Envoi via l'ID de service et template EmailJS par défaut ou configuré
+        await emailjs.send('service_fz68jl1', 'template_pqtasnz', templateParams);
+
+        alert("Traitement effectué et e-mail envoyé avec succès !");
+      } catch (err) {
+        alert("Erreur lors du traitement : " + err.message);
       }
     };
   </script>
-
 </body>
 </html>
