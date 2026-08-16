@@ -586,6 +586,14 @@
       return d.toISOString().split('T')[0];
     }
 
+    function definirMinDateDemain() {
+      const inputDate = document.getElementById('cartDate');
+      if (!inputDate) return;
+      const demain = new Date();
+      demain.setDate(demain.getDate() + 1);
+      inputDate.min = demain.toISOString().split('T')[0];
+    }
+
     function sauvegarderPanier() {
       localStorage.setItem('bureau_pret_panier', JSON.stringify(panier));
       actualiserBadgePanier();
@@ -841,6 +849,7 @@
 
     window.ouvrirModalPanier = () => {
       document.getElementById('cartModal').classList.remove('hidden');
+      definirMinDateDemain();
       afficherContenuPanier();
     };
 
