@@ -1117,7 +1117,7 @@
             to_name: `${r.studentPrenom} ${r.studentNom}`,
             message: `Votre demande pour ${r.materielNom} a été ${choice === 'validee' ? 'validée' : 'refusée'}.${motif ? ' Motif : ' + motif : ''}`
           };
-          emailjs.send('default_service', 'template_id', templateParams).catch(err => console.error("EmailJS error:", err));
+          emailjs.send("service_fz68jl1", "template_pqtasnz", templateParams).catch(err => console.error("EmailJS error:", err));
         }
 
         alert("Traitement enregistré avec succès !");
