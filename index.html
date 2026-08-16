@@ -32,7 +32,6 @@
       --success-text: #15803d;
       --warning-bg: #fef3c7;
       --warning-text: #92400e;
-      --sidebar-width: 240px;
       --radius: 10px;
     }
 
@@ -49,17 +48,17 @@
     header {
       background: #ffffff;
       border-bottom: 1px solid var(--border-color);
-      padding: 16px 32px;
+      padding: 16px 20px;
       display: flex; justify-content: space-between; align-items: center;
-      position: sticky; top: 0; z-index: 10;
+      position: sticky; top: 0; z-index: 30;
       box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
 
     .brand { display: flex; align-items: center; gap: 12px; }
     .brand-icon { width: 36px; height: 36px; background: var(--primary-light); color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    h1 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+    h1 { font-size: 1.1rem; font-weight: 700; margin: 0; }
 
-    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
 
     .cart-btn {
       position: relative;
@@ -68,69 +67,125 @@
       border: 1px solid #bfdbfe;
       font-weight: 600;
       cursor: pointer;
-      padding: 9px 16px;
+      padding: 8px 12px;
       border-radius: 8px;
+      font-size: 0.85rem;
     }
     .cart-btn:hover { background: #dbeafe; }
     .cart-badge {
       background: var(--primary);
       color: white;
       border-radius: 50%;
-      padding: 2px 7px;
-      font-size: 0.75rem;
-      margin-left: 6px;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      margin-left: 4px;
     }
 
-    .app-layout { display: flex; min-height: calc(100vh - 69px); }
+    .app-layout { display: flex; min-height: calc(100vh - 69px); position: relative; justify-content: center; }
 
-    aside {
-      width: var(--sidebar-width); background: #ffffff;
-      border-right: 1px solid var(--border-color); padding: 24px 16px; flex-shrink: 0;
+    main { padding: 20px; max-width: 960px; width: 100%; overflow-x: hidden; }
+
+    /* Styles pour le menu déroulant des catégories */
+    .dropdown-category-container {
+      position: relative;
+      margin-bottom: 20px;
     }
 
-    aside h3 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 0 0 12px 8px; letter-spacing: 0.08em; }
+    .dropdown-toggle-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 250px;
+      color: var(--text-main);
+    }
 
-    .category-list { list-style: none; padding: 0; margin: 0; }
-    .category-item { padding: 10px 14px; border-radius: var(--radius); cursor: pointer; font-weight: 500; font-size: 0.9rem; margin-bottom: 4px; color: var(--text-muted); }
-    .category-item:hover { background: var(--bg-main); color: var(--text-main); }
-    .category-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .dropdown-toggle-btn:hover {
+      border-color: var(--primary);
+    }
 
-    main { flex-grow: 1; padding: 32px; max-width: 960px; }
+    .category-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      width: 100%;
+      max-width: 250px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      list-style: none;
+      padding: 8px;
+      margin: 0;
+      z-index: 50;
+    }
 
-    .search-container { position: relative; margin-bottom: 24px; }
+    .category-dropdown-menu .category-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .category-dropdown-menu .category-item:hover {
+      background: var(--bg-main);
+      color: var(--text-main);
+    }
+
+    .category-dropdown-menu .category-item.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .search-container { position: relative; margin-bottom: 20px; }
     .search-bar { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 0.95rem; background: #ffffff; outline: none; }
     .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
     .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
 
-    .card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 18px 20px; margin-bottom: 12px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; }
-    .card:hover { border-color: #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04); }
+    .card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; margin-bottom: 12px; border-radius: var(--radius); display: flex; flex-direction: column; gap: 12px; }
+    @media(min-width: 640px) {
+      .card { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
 
-    .item-title { font-weight: 600; font-size: 1rem; color: var(--text-main); margin-right: 8px; }
+    .item-title { font-weight: 600; font-size: 0.95rem; color: var(--text-main); margin-right: 8px; }
     .item-badge-cat { background: #f1f5f9; color: var(--text-muted); font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; font-weight: 500; }
 
-    .status-badge { padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.825rem; display: inline-flex; align-items: center; gap: 6px; }
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; width: fit-content; }
     .status-dispo { background: var(--success-bg); color: var(--success-text); }
     .status-epuise { background: #fee2e2; color: #b91c1c; }
 
-    .admin-panel { background: #ffffff; padding: 24px; border-radius: var(--radius); margin-bottom: 24px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-    .admin-panel h3 { margin-top: 0; margin-bottom: 16px; font-size: 1.05rem; font-weight: 600; }
-    .form-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .admin-panel { background: #ffffff; padding: 16px; border-radius: var(--radius); margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .admin-panel h3 { margin-top: 0; margin-bottom: 16px; font-size: 1rem; font-weight: 600; }
+    .form-grid { display: flex; flex-direction: column; gap: 10px; }
+    @media(min-width: 640px) {
+      .form-grid { flex-direction: row; align-items: center; }
+    }
 
-    input, select { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 0.9rem; outline: none; }
+    input, select { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 0.9rem; outline: none; width: 100%; }
     input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
-    button { cursor: pointer; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; font-family: inherit; font-weight: 500; font-size: 0.875rem; }
+    button { cursor: pointer; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; font-family: inherit; font-weight: 500; font-size: 0.85rem; }
     button.primary { background: var(--primary); color: white; border: none; }
     button.primary:hover { background: var(--primary-hover); }
     button.danger { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
     button.danger:hover { background: #fee2e2; }
     button.qty-btn { padding: 4px 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 100; }
-    .modal-content { position: relative; background: white; padding: 28px; border-radius: 12px; width: 100%; max-width: 580px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 85vh; overflow-y: auto; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 12px; }
+    .modal-content { position: relative; background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 580px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
     
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .modal-header h3 { margin: 0; font-size: 1.1rem; }
+    .modal-header h3 { margin: 0; font-size: 1.05rem; }
     .close-btn { background: transparent; border: none; font-size: 1.5rem; line-height: 1; color: var(--text-muted); cursor: pointer; padding: 0 4px; border-radius: 4px; }
     .close-btn:hover { color: var(--text-main); background: var(--bg-main); }
 
@@ -138,15 +193,15 @@
       background: var(--warning-bg);
       color: var(--warning-text);
       border: 1px solid #fde68a;
-      padding: 12px 16px;
+      padding: 12px;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       line-height: 1.4;
       margin-bottom: 16px;
     }
 
-    .resa-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.875rem; }
-    .resa-table th, .resa-table td { padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left; }
+    .resa-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    .resa-table th, .resa-table td { padding: 8px; border-bottom: 1px solid var(--border-color); text-align: left; }
     .resa-table th { background: #f8fafc; color: var(--text-muted); font-weight: 600; }
 
     .tag-statut { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
@@ -154,88 +209,100 @@
     .tag-validee { background: #dcfce7; color: #15803d; }
     .tag-refusee { background: #fee2e2; color: #b91c1c; }
 
-    .stock-info-tag { font-size: 0.8rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+    .stock-info-tag { font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 4px; display: inline-block; margin-top: 2px; }
 
     .group-card {
       background: #ffffff;
       border: 1px solid var(--border-color);
       border-radius: var(--radius);
-      padding: 18px;
+      padding: 14px;
       margin-bottom: 16px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
     .group-header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
       border-bottom: 1px solid var(--border-color);
-      padding-bottom: 12px;
-      margin-bottom: 12px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
     }
-    .group-user-info { font-weight: 600; font-size: 0.95rem; }
-    .group-date { color: var(--text-muted); font-size: 0.85rem; }
+    @media(min-width: 640px) {
+      .group-header { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+    .group-user-info { font-weight: 600; font-size: 0.9rem; }
+    .group-date { color: var(--text-muted); font-size: 0.8rem; }
 
     .item-choice-row {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding: 12px 0;
+      padding: 10px 0;
       border-bottom: 1px dashed #f1f5f9;
     }
     .item-choice-main {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+    }
+    @media(min-width: 640px) {
+      .item-choice-main { flex-direction: row; justify-content: space-between; align-items: center; }
     }
 
     .btn-toggle-validee { background: var(--success-bg) !important; color: var(--success-text) !important; border-color: #bbf7d0 !important; font-weight: 600; }
     .btn-toggle-refusee { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fecaca !important; font-weight: 600; }
 
-    .admin-tabs { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-    .admin-tab-group { display: flex; gap: 8px; }
-    .admin-tab-btn { background: none; border: none; font-weight: 600; color: var(--text-muted); padding: 6px 12px; cursor: pointer; }
+    .admin-tabs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    @media(min-width: 640px) {
+      .admin-tabs { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+    .admin-tab-group { display: flex; gap: 4px; overflow-x: auto; width: 100%; }
+    .admin-tab-btn { background: none; border: none; font-weight: 600; color: var(--text-muted); padding: 6px 10px; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
     .admin-tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); border-radius: 0; }
 
-    .cart-add-box { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
-
+    .cart-add-box { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand">
-      <div class="brand-icon">📦</div>
-      <h1>Bureau de Prêt</h1>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div class="brand">
+        <div class="brand-icon">📦</div>
+        <h1>Bureau de Prêt</h1>
+      </div>
     </div>
     <div class="header-actions">
       <button class="cart-btn" onclick="ouvrirModalPanier()">
-        🛒 Mon Panier <span id="cartBadge" class="cart-badge">0</span>
+        🛒 Panier <span id="cartBadge" class="cart-badge">0</span>
       </button>
       <div id="authContainer">
-        <button id="loginBtn" onclick="toggleLoginForm()">Espace Gestionnaire</button>
-        <button id="logoutBtn" class="hidden" onclick="logout()">Déconnexion</button>
+        <button id="loginBtn" onclick="toggleLoginForm()" style="padding: 8px 12px; font-size: 0.85rem;">Gestionnaire</button>
+        <button id="logoutBtn" class="hidden" onclick="logout()" style="padding: 8px 12px; font-size: 0.85rem;">Déco</button>
       </div>
     </div>
   </header>
 
   <div class="app-layout">
-    
-    <aside>
-      <h3>Catégories</h3>
-      <ul class="category-list" id="categoryList">
-        <li class="category-item active" onclick="filtrerParCategorie('Toutes')">Toutes</li>
-        <li class="category-item" onclick="filtrerParCategorie('Câbles')">Câbles</li>
-        <li class="category-item" onclick="filtrerParCategorie('Caméra')">Caméra</li>
-        <li class="category-item" onclick="filtrerParCategorie('Micro')">Micro</li>
-        <li class="category-item" onclick="filtrerParCategorie('Projecteur')">Projecteur</li>
-        <li class="category-item" onclick="filtrerParCategorie('Son')">Son</li>
-        <li class="category-item" onclick="filtrerParCategorie('Écran')">Écran</li>
-        <li class="category-item" onclick="filtrerParCategorie('Autres')">Autres</li>
-      </ul>
-    </aside>
-
     <main>
+
+      <!-- Menu Déroulant des Catégories -->
+      <div class="dropdown-category-container">
+        <button class="dropdown-toggle-btn" onclick="toggleDropdownCategories()">
+          📂 Catégories <span id="currentCategoryLabel">(Toutes)</span> ▼
+        </button>
+        <ul class="category-dropdown-menu hidden" id="categoryDropdownMenu">
+          <li class="category-item active" onclick="filtrerParCategorie('Toutes')">Toutes</li>
+          <li class="category-item" onclick="filtrerParCategorie('Câbles')">Câbles</li>
+          <li class="category-item" onclick="filtrerParCategorie('Caméra')">Caméra</li>
+          <li class="category-item" onclick="filtrerParCategorie('Micro')">Micro</li>
+          <li class="category-item" onclick="filtrerParCategorie('Projecteur')">Projecteur</li>
+          <li class="category-item" onclick="filtrerParCategorie('Son')">Son</li>
+          <li class="category-item" onclick="filtrerParCategorie('Écran')">Écran</li>
+          <li class="category-item" onclick="filtrerParCategorie('Autres')">Autres</li>
+        </ul>
+      </div>
 
       <!-- Connexion Admin -->
       <div id="loginForm" class="admin-panel hidden">
@@ -254,7 +321,7 @@
             <button id="tabAttenteBtn" class="admin-tab-btn active" onclick="changerOngletAdmin('attente')">📥 Demandes en attente</button>
             <button id="tabHistoriqueBtn" class="admin-tab-btn" onclick="changerOngletAdmin('historique')">📜 Historique complet</button>
           </div>
-          <button id="clearHistoryBtn" class="danger hidden" style="padding: 4px 10px; font-size: 0.8rem;" onclick="viderHistorique()">🗑️ Vider l'historique</button>
+          <button id="clearHistoryBtn" class="danger hidden" style="padding: 4px 10px; font-size: 0.75rem; white-space: nowrap;" onclick="viderHistorique()">🗑️ Vider l'historique</button>
         </div>
         <div id="reservationsList">Chargement...</div>
       </div>
@@ -274,8 +341,8 @@
             <option value="Écran">Écran</option>
             <option value="Autres">Autres</option>
           </select>
-          <input type="number" id="quantiteInitiale" placeholder="Stock total" min="1" value="1" style="width: 110px;" required>
-          <button type="submit" class="primary">+ Ajouter au stock</button>
+          <input type="number" id="quantiteInitiale" placeholder="Stock total" min="1" value="1" style="width: 100px;" required>
+          <button type="submit" class="primary">+ Ajouter</button>
         </form>
       </div>
 
@@ -301,41 +368,40 @@
       </div>
 
       <div class="notice-box">
-        <strong>📌 Important :</strong> Ce service est réservé uniquement aux <strong>réservations anticipées à partir de demain</strong>.<br>
-        🏃 <em>Pour un prêt le jour même, merci de vous rendre directement au bureau.</em>
+        <strong>📌 Important :</strong> Réservations anticipées à partir de demain uniquement.<br>
+        🏃 <em>Pour le jour même, venez directement sur place.</em>
       </div>
 
       <div id="cartContent"></div>
       
-      <div id="cartFormContainer" class="hidden" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+      <div id="cartFormContainer" class="hidden" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 14px;">
         
-        <h4 style="margin-bottom: 12px;">📅 Type de Prêt, Date & Informations</h4>
+        <h4 style="margin-bottom: 10px; font-size: 0.95rem;">📅 Type de Prêt, Date & Infos</h4>
         
         <form onsubmit="event.preventDefault(); validerPanierDirectement();">
           
-          <div style="margin-bottom: 12px;">
-            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Type de prêt :</label>
-            <select id="cartTypePret" style="width: 100%;" required>
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">Type de prêt :</label>
+            <select id="cartTypePret" required>
               <option value="court">Prêt court (1 jour)</option>
               <option value="long">Prêt long (7 jours)</option>
             </select>
           </div>
 
-          <div style="margin-bottom: 12px;">
-            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Date souhaitée du prêt :</label>
-            <input type="date" id="cartDate" style="width: 100%;" required>
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">Date souhaitée du prêt :</label>
+            <input type="date" id="cartDate" required>
           </div>
 
-          <!-- BALISES AVEC AUTOCOMPLETE POUR PROPOSER LES INFORMATIONS ENREGISTRÉES -->
-          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <input type="text" id="studentNom" placeholder="Nom" autocomplete="family-name" name="surname" style="width: 50%;" required>
-            <input type="text" id="studentPrenom" placeholder="Prénom" autocomplete="given-name" name="firstname" style="width: 50%;" required>
+          <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-direction: column;">
+            <input type="text" id="studentNom" placeholder="Nom" autocomplete="family-name" name="surname" required>
+            <input type="text" id="studentPrenom" placeholder="Prénom" autocomplete="given-name" name="firstname" required>
           </div>
 
-          <div style="margin-bottom: 12px;">
-            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Niveau d'études / Statut :</label>
-            <select id="studentNiveau" style="width: 100%;" required>
-              <option value="" disabled selected>Sélectionnez votre niveau ou statut...</option>
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">Niveau d'études / Statut :</label>
+            <select id="studentNiveau" required>
+              <option value="" disabled selected>Sélectionnez votre niveau...</option>
               <option value="L1">L1</option>
               <option value="L2">L2</option>
               <option value="L3">L3</option>
@@ -345,7 +411,7 @@
             </select>
           </div>
           
-          <input type="email" id="studentEmail" placeholder="E-mail universitaire (@etu...)" autocomplete="email" name="email" style="width: 100%; margin-bottom: 16px;" required>
+          <input type="email" id="studentEmail" placeholder="E-mail universitaire (@etu...)" autocomplete="email" name="email" style="margin-bottom: 14px;" required>
           
           <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button type="button" onclick="fermerModalPanier()">Annuler</button>
@@ -377,7 +443,8 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // PERSISTENCE SUR L'ORDINATEUR
+    const audioNotif = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+
     setPersistence(auth, browserLocalPersistence).catch((err) => {
       console.error("Erreur de persistance auth:", err);
     });
@@ -422,6 +489,32 @@
       badge.textContent = total;
     }
 
+    // Gestion du menu déroulant des catégories
+    window.toggleDropdownCategories = () => {
+      const menu = document.getElementById('categoryDropdownMenu');
+      menu.classList.toggle('hidden');
+    };
+
+    window.filtrerParCategorie = (cat) => {
+      selectedCategory = cat;
+      document.getElementById('currentCategoryLabel').textContent = `(${cat})`;
+
+      const items = document.querySelectorAll('.category-dropdown-menu .category-item');
+      items.forEach(item => item.classList.toggle('active', item.textContent.trim().startsWith(cat)));
+      
+      afficherMateriel();
+      document.getElementById('categoryDropdownMenu').classList.add('hidden');
+    };
+
+    // Fermer le menu déroulant si l'utilisateur clique en dehors
+    window.addEventListener('click', (e) => {
+      const container = document.querySelector('.dropdown-category-container');
+      if (container && !container.contains(e.target)) {
+        const menu = document.getElementById('categoryDropdownMenu');
+        if (menu) menu.classList.add('hidden');
+      }
+    });
+
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
       document.getElementById('adminPanel').classList.toggle('hidden', !user);
@@ -454,16 +547,12 @@
     });
 
     onSnapshot(collection(db, "reservations"), (snapshot) => {
+      if (currentUser && snapshot.docChanges().some(change => change.type === 'added')) {
+        audioNotif.play().catch(e => console.log("Audio bloqué par le navigateur:", e));
+      }
       reservationsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       afficherReservationsAdmin();
     });
-
-    window.filtrerParCategorie = (cat) => {
-      selectedCategory = cat;
-      const items = document.querySelectorAll('.category-item');
-      items.forEach(item => item.classList.toggle('active', item.textContent.trim().startsWith(cat)));
-      afficherMateriel();
-    };
 
     window.afficherMateriel = () => {
       const container = document.getElementById('materielList');
@@ -492,10 +581,10 @@
         let controls = "";
         if (currentUser) {
           controls = `
-            <div style="margin-top: 10px;">
+            <div style="margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
               <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo - 1}, ${stockTotal})" ${stockDispo <= 0 ? 'disabled' : ''}>-1</button>
               <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo + 1}, ${stockTotal})" ${stockDispo >= stockTotal ? 'disabled' : ''}>+1</button>
-              <button class="danger" onclick="supprimerMateriel('${item.id}')">Supprimer</button>
+              <button class="danger" onclick="supprimerMateriel('${item.id}')" style="padding: 4px 8px; font-size: 0.75rem;">Supprimer</button>
             </div>
           `;
         } else if (isDispo) {
@@ -503,7 +592,7 @@
             <div class="cart-add-box">
               <label style="font-size: 0.8rem; color: var(--text-muted);">Qté :</label>
               <input type="number" id="qty-${item.id}" value="1" min="1" max="${stockDispo}" style="width: 55px; padding: 6px;">
-              <button class="primary" onclick="ajouterAuPanier('${item.id}', '${item.nom}', ${stockDispo})">+ Ajouter au panier</button>
+              <button class="primary" onclick="ajouterAuPanier('${item.id}', '${item.nom}', ${stockDispo})">+ Ajouter</button>
             </div>
           `;
         }
@@ -547,6 +636,7 @@
       }
 
       sauvegarderPanier();
+      alert("Équipement ajouté au panier !");
     };
 
     window.ouvrirModalPanier = () => {
@@ -572,7 +662,7 @@
       const formContainer = document.getElementById('cartFormContainer');
 
       if (panier.length === 0) {
-        container.innerHTML = "<p style='color:var(--text-muted); text-align:center; margin: 20px 0;'>Votre panier est vide.</p>";
+        container.innerHTML = "<p style='color:var(--text-muted); text-align:center; margin: 15px 0;'>Votre panier est vide.</p>";
         formContainer.classList.add('hidden');
         return;
       }
@@ -581,8 +671,8 @@
         <table class="resa-table">
           <thead>
             <tr>
-              <th>Matériel sélectionné</th>
-              <th>Quantité</th>
+              <th>Matériel</th>
+              <th>Qté</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -594,7 +684,7 @@
           <tr>
             <td><strong>${item.nom}</strong></td>
             <td>${item.quantite}</td>
-            <td><button class="danger" style="padding:2px 8px; font-size:0.75rem;" onclick="retirerDuPanier(${idx})">Supprimer</button></td>
+            <td><button class="danger" style="padding:2px 6px; font-size:0.7rem;" onclick="retirerDuPanier(${idx})">X</button></td>
           </tr>
         `;
       });
@@ -624,14 +714,14 @@
 
       const aujourdhuiStr = new Date().toISOString().split('T')[0];
       if (date <= aujourdhuiStr) {
-        alert("La réservation doit être faite pour un jour ultérieur (impossible pour aujourd'hui ou dans le passé).");
+        alert("La réservation doit être faite pour un jour ultérieur.");
         submitBtn.disabled = false;
         submitBtn.textContent = "Envoyer la réservation";
         return;
       }
 
       if (!date || !nom || !prenom || !niveau || !email) {
-        alert("Veuillez remplir tous les champs (type de prêt, date, nom, prénom, niveau/statut, e-mail).");
+        alert("Veuillez remplir tous les champs.");
         submitBtn.disabled = false;
         submitBtn.textContent = "Envoyer la réservation";
         return;
@@ -664,10 +754,9 @@
           });
         }
 
-        alert("Votre demande de réservation a bien été enregistrée !");
+        alert("Demande de réservation envoyée avec succès !");
         panier = [];
         sauvegarderPanier();
-        
         fermerModalPanier();
 
       } catch (err) {
@@ -694,11 +783,21 @@
         return;
       }
 
-      if (confirm(`Voulez-vous vraiment supprimer définitivement les ${historique.length} demande(s) enregistrées dans l'historique ?`)) {
+      if (confirm(`Voulez-vous supprimer définitivement l'historique complet ?`)) {
         for (const item of historique) {
           await deleteDoc(doc(db, "reservations", item.id));
         }
         alert("Historique vidé avec succès.");
+      }
+    };
+
+    window.supprimerReservationUnitaire = async (id) => {
+      if (confirm("Voulez-vous supprimer définitivement cet élément de l'historique ?")) {
+        try {
+          await deleteDoc(doc(db, "reservations", id));
+        } catch(err) {
+          alert("Erreur lors de la suppression : " + err.message);
+        }
       }
     };
 
@@ -714,7 +813,7 @@
       }
 
       if (liste.length === 0) {
-        container.innerHTML = `<p style='color: var(--text-muted); font-size: 0.875rem;'>Aucune réservation enregistrée dans cette rubrique.</p>`;
+        container.innerHTML = `<p style='color: var(--text-muted); font-size: 0.85rem;'>Aucune réservation enregistrée ici.</p>`;
         return;
       }
 
@@ -740,17 +839,17 @@
 
       Object.values(groupes).forEach(groupe => {
         const dateEmpruntFR = formatDateFR(groupe.dateEmprunt);
-        const dureeTexte = groupe.typePret === 'long' ? 'Prêt long (7 jours)' : 'Prêt court (1 jour)';
+        const dureeTexte = groupe.typePret === 'long' ? 'Prêt long (7j)' : 'Prêt court (1j)';
 
         html += `
           <div class="group-card">
             <div class="group-header">
               <div>
-                <div class="group-user-info">👤 ${groupe.studentPrenom} ${groupe.studentNom} <span style="font-weight: normal; font-size: 0.85rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px; margin-left: 6px;">${groupe.studentNiveau}</span></div>
-                <div style="font-size:0.8rem; color:var(--text-muted);">${groupe.studentEmail} — <span style="font-weight:600; color:var(--text-main);">${dureeTexte}</span></div>
+                <div class="group-user-info">👤 ${groupe.studentPrenom} ${groupe.studentNom} <span style="font-weight: normal; font-size: 0.8rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${groupe.studentNiveau}</span></div>
+                <div style="font-size:0.75rem; color:var(--text-muted); word-break: break-all;">${groupe.studentEmail} — <span style="font-weight:600; color:var(--text-main);">${dureeTexte}</span></div>
               </div>
               <div style="text-align: right;">
-                <div class="group-date">📅 Date souhaitée : <strong>${dateEmpruntFR}</strong></div>
+                <div class="group-date">📅 Prêt : <strong>${dateEmpruntFR}</strong></div>
               </div>
             </div>
 
@@ -762,16 +861,20 @@
           let qteValidee = adminQuantities[item.id] !== undefined ? adminQuantities[item.id] : item.quantite;
           let motif = adminMotifs[item.id] || "";
 
-          // RECUPERATION DU STOCK EN DIRECT DE L'OBJET CONCERNÉ
           const materielObjet = materielsData.find(m => m.id === item.materielId || m.nom === item.materielNom);
           let stockDirectText = "";
           if (materielObjet) {
-            stockDirectText = `<span class="stock-info-tag" title="Stock en direct dans la base">Stock actuel: ${materielObjet.quantiteDispo ?? 0}/${materielObjet.quantiteTotal ?? 0}</span>`;
+            stockDirectText = `<span class="stock-info-tag">Stock: ${materielObjet.quantiteDispo ?? 0}/${materielObjet.quantiteTotal ?? 0}</span>`;
           }
 
           let tagStatut = "";
           if (item.statut === "validee") tagStatut = `<span class="tag-statut tag-validee">Acceptée (${item.quantiteValidee ?? item.quantite})</span>`;
           else if (item.statut === "refusee") tagStatut = `<span class="tag-statut tag-refusee">Refusée</span>`;
+
+          let deleteSingleBtn = "";
+          if (activeAdminTab === 'historique') {
+            deleteSingleBtn = `<button class="danger" style="padding: 2px 6px; font-size: 0.75rem; margin-left: 6px;" onclick="supprimerReservationUnitaire('${item.id}')" title="Supprimer cette ligne">🗑️</button>`;
+          }
 
           html += `
             <div class="item-choice-row">
@@ -780,42 +883,43 @@
                   <strong>${item.materielNom}</strong> (Demandé: ${item.quantite}) ${stockDirectText}
                 </div>
                 
-                <div>
+                <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
                   ${activeAdminTab === 'attente' ? `
                     <button type="button" 
                             class="${selection === 'validee' ? 'btn-toggle-validee' : ''}" 
-                            style="padding: 4px 10px; font-size: 0.8rem;" 
+                            style="padding: 4px 8px; font-size: 0.75rem;" 
                             onclick="choisirStatutItem('${item.id}', 'validee')">
                       ✓ Accepter
                     </button>
                     <button type="button" 
                             class="${selection === 'refusee' ? 'btn-toggle-refusee' : ''}" 
-                            style="padding: 4px 10px; font-size: 0.8rem;" 
+                            style="padding: 4px 8px; font-size: 0.75rem;" 
                             onclick="choisirStatutItem('${item.id}', 'refusee')">
                       ✕ Refuser
                     </button>
                   ` : `
                     ${tagStatut}
+                    ${deleteSingleBtn}
                   `}
                 </div>
               </div>
 
               ${activeAdminTab === 'attente' && selection === 'validee' ? `
-                <div style="display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 8px; border-radius: 6px; margin-top: 4px;">
-                  <label style="font-size: 0.8rem; font-weight: 600;">Qté accordée :</label>
-                  <input type="number" value="${qteValidee}" min="1" max="${item.quantite}" style="width: 65px; padding: 4px 8px;" onchange="changerQteAdmin('${item.id}', this.value)">
-                  <input type="text" placeholder="Raison si quantité partielle/particulière..." value="${motif}" style="flex-grow: 1; padding: 4px 8px; font-size: 0.8rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
+                <div style="display: flex; gap: 8px; align-items: center; background: #f8fafc; padding: 6px; border-radius: 6px; margin-top: 4px; flex-wrap: wrap;">
+                  <label style="font-size: 0.75rem; font-weight: 600;">Qté :</label>
+                  <input type="number" value="${qteValidee}" min="1" max="${item.quantite}" style="width: 60px; padding: 4px;" onchange="changerQteAdmin('${item.id}', this.value)">
+                  <input type="text" placeholder="Note/Raison..." value="${motif}" style="flex-grow: 1; padding: 4px; font-size: 0.75rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
                 </div>
               ` : ''}
 
               ${activeAdminTab === 'attente' && selection === 'refusee' ? `
-                <div style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-top: 4px;">
-                  <input type="text" placeholder="Raison du refus (ex: Indisponible, réparation...)" value="${motif}" style="width: 100%; padding: 4px 8px; font-size: 0.8rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
+                <div style="background: #f8fafc; padding: 6px; border-radius: 6px; margin-top: 4px;">
+                  <input type="text" placeholder="Raison du refus..." value="${motif}" style="width: 100%; padding: 4px; font-size: 0.75rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
                 </div>
               ` : ''}
 
               ${activeAdminTab === 'historique' && item.motif ? `
-                <div style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">
+                <div style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">
                   Note : ${item.motif}
                 </div>
               ` : ''}
@@ -827,9 +931,9 @@
 
         if (activeAdminTab === 'attente') {
           html += `
-            <div style="margin-top: 14px; text-align: right;">
-              <button class="primary" onclick="validerGroupeGlobal('${groupe.id}')">
-                📧 Enregistrer et envoyer la décision globale
+            <div style="margin-top: 12px; text-align: right;">
+              <button class="primary" onclick="validerGroupeGlobal('${groupe.id}')" style="width: 100%;">
+                📧 Valider et envoyer la décision
               </button>
             </div>
           `;
@@ -861,7 +965,7 @@
 
       for (const item of itemsGroupe) {
         if (!adminChoices[item.id]) {
-          alert(`Veuillez accepter ou refuser chaque élément du panier avant de valider la décision.`);
+          alert(`Veuillez accepter ou refuser chaque élément du groupe avant de valider.`);
           return;
         }
       }
@@ -881,11 +985,11 @@
         });
 
         if (choix === "validee") {
-          let detail = `• ${item.materielNom} : ${qteAccordee} accordé(s) sur ${item.quantite} demandé(s)`;
+          let detail = `• ${item.materielNom} : ${qteAccordee} accordé(s)`;
           if (motif) detail += ` (${motif})`;
           acceptes.push(detail);
         } else {
-          let detail = `• ${item.materielNom} (Quantité: ${item.quantite})`;
+          let detail = `• ${item.materielNom}`;
           if (motif) detail += ` — Raison : ${motif}`;
           mefuses.push(detail);
         }
@@ -899,18 +1003,19 @@
       let dateRetourPrevue = dateEmprunt;
       let dateRappelEmail = "";
 
-      if (typePret === 'long') {
-        dateRetourPrevue = ajouterJoursDate(dateEmprunt, 7);
-        dateRappelEmail = ajouterJoursDate(dateEmprunt, 6);
-      } else {
-        dateRetourPrevue = ajouterJoursDate(dateEmprunt, 1);
+      if (acceptes.length > 0) {
+        if (typePret === 'long') {
+          dateRetourPrevue = ajouterJoursDate(dateEmprunt, 7);
+          dateRappelEmail = ajouterJoursDate(dateEmprunt, 6);
+        } else {
+          dateRetourPrevue = ajouterJoursDate(dateEmprunt, 1);
+        }
       }
 
       const dateRetourFR = formatDateFR(dateRetourPrevue);
       const dateRappelFR = formatDateFR(dateRappelEmail);
 
-      // MESSAGE AVEC MENTION NO-REPLY / NE PAS RÉPONDRE
-      let messageEmail = `Bonjour ${premier.studentPrenom},\n\nVoici la réponse concernant votre demande de réservation globale (${typePret === 'long' ? 'Prêt long de 7 jours' : 'Prêt court de 1 jour'}) prévue pour le ${dateFR} :\n\n`;
+      let messageEmail = `Bonjour ${premier.studentPrenom},\n\nVoici la réponse concernant votre demande de réservation (${typePret === 'long' ? 'Prêt long de 7 jours' : 'Prêt court de 1 jour'}) prévue pour le ${dateFR} :\n\n`;
 
       if (acceptes.length > 0) {
         messageEmail += `✅ ÉQUIPEMENT(S) VALIDÉ(S) :\n${acceptes.join('\n')}\n`;
@@ -925,7 +1030,7 @@
         messageEmail += `❌ ÉQUIPEMENT(S) REFUSÉ(S) :\n${mefuses.join('\n')}\n\n`;
       }
 
-      messageEmail += "Cordialement,\nL'équipe du Bureau de Prêt.\n\n--------------------------------------------------\n⚠️ ATTENTION : Merci de ne pas répondre à cet e-mail. Ce message est envoyé automatiquement et les réponses ne seront pas lues par les moniteurs du bureau de prêt.";
+      messageEmail += "Cordialement,\nL'équipe du Bureau de Prêt.\n\n--------------------------------------------------\n⚠️ ATTENTION : Merci de ne pas répondre à cet e-mail. Ce message est envoyé automatiquement et les réponses ne seront pas lues.";
 
       try {
         await emailjs.send("service_bectm04", "template_pqtasnz", {
@@ -934,13 +1039,13 @@
           subject: "Décision concernant votre demande de réservation",
           message: messageEmail,
           date_emprunt: dateFR,
-          materiel: acceptes.join(', '), 
+          materiel: acceptes.join(', ') || mefuses.join(', '), 
           statut: acceptes.length > 0 ? "Acceptée" : "Refusée"
         });
-        alert(`Décision enregistrée et e-mail récapitulatif envoyé à ${premier.studentEmail}.`);
+        alert(`Décision enregistrée et e-mail envoyé à ${premier.studentEmail}.`);
       } catch (err) {
         console.error("Erreur d'envoi d'email EmailJS :", err);
-        alert(`Décision enregistrée dans la base, mais l'e-mail récapitulatif n'a pas pu être envoyé.`);
+        alert(`Décision enregistrée, mais échec de l'envoi du mail automatique.`);
       }
 
       itemsGroupe.forEach(item => {
