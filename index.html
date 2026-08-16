@@ -35,7 +35,7 @@
       --radius: 10px;
     }
 
-    * { box-sizing: border-box; transition: all 0.15s ease; }
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -70,6 +70,7 @@
       padding: 8px 12px;
       border-radius: 8px;
       font-size: 0.85rem;
+      transition: background 0.15s ease;
     }
     .cart-btn:hover { background: #dbeafe; }
     .cart-badge {
@@ -85,7 +86,6 @@
 
     main { padding: 20px; max-width: 960px; width: 100%; overflow-x: hidden; }
 
-    /* Styles pour le menu déroulant des catégories */
     .dropdown-category-container {
       position: relative;
       margin-bottom: 20px;
@@ -105,6 +105,7 @@
       width: 100%;
       max-width: 250px;
       color: var(--text-main);
+      transition: border-color 0.15s ease;
     }
 
     .dropdown-toggle-btn:hover {
@@ -134,6 +135,7 @@
       font-size: 0.9rem;
       color: var(--text-muted);
       margin-bottom: 2px;
+      transition: background 0.15s ease, color 0.15s ease;
     }
 
     .category-dropdown-menu .category-item:hover {
@@ -148,11 +150,11 @@
     }
 
     .search-container { position: relative; margin-bottom: 20px; }
-    .search-bar { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 0.95rem; background: #ffffff; outline: none; }
+    .search-bar { width: 100%; padding: 12px 16px 12px 42px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 0.95rem; background: #ffffff; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
     .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
     .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
 
-    .card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; margin-bottom: 12px; border-radius: var(--radius); display: flex; flex-direction: column; gap: 12px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 16px; margin-bottom: 12px; border-radius: var(--radius); display: flex; flex-direction: column; gap: 12px; position: relative; }
     @media(min-width: 640px) {
       .card { flex-direction: row; justify-content: space-between; align-items: center; }
     }
@@ -171,15 +173,63 @@
       .form-grid { flex-direction: row; align-items: center; }
     }
 
-    input, select { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 0.9rem; outline: none; width: 100%; }
+    input, select { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 0.9rem; outline: none; width: 100%; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
     input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
-    button { cursor: pointer; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; font-family: inherit; font-weight: 500; font-size: 0.85rem; }
+    button { cursor: pointer; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; font-family: inherit; font-weight: 500; font-size: 0.85rem; transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease; }
+    button:active { transform: scale(0.95); }
+
     button.primary { background: var(--primary); color: white; border: none; }
     button.primary:hover { background: var(--primary-hover); }
     button.danger { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
     button.danger:hover { background: #fee2e2; }
     button.qty-btn { padding: 4px 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; }
+
+    /* Menu 3 points administration article */
+    .item-menu-container {
+      position: relative;
+      display: inline-block;
+    }
+    .menu-dots-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+    .menu-dots-btn:hover { background: #e2e8f0; color: var(--text-main); }
+
+    .item-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+      list-style: none;
+      padding: 6px;
+      margin: 0;
+      z-index: 40;
+      min-width: 140px;
+    }
+    .item-dropdown-menu li {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border-radius: 4px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .item-dropdown-menu li:hover { background: var(--bg-main); }
+    .item-dropdown-menu li.delete-opt { color: var(--danger); }
+    .item-dropdown-menu li.delete-opt:hover { background: #fef2f2; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 100; padding: 12px; }
     .modal-content { position: relative; background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 580px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
@@ -207,8 +257,6 @@
     .tag-statut { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
     .tag-validee { background: #dcfce7; color: #15803d; }
     .tag-refusee { background: #fee2e2; color: #b91c1c; }
-
-    .stock-info-tag { font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 4px; display: inline-block; margin-top: 2px; }
 
     .group-card {
       background: #ffffff;
@@ -261,6 +309,36 @@
 
     .cart-add-box { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
     .hidden { display: none !important; }
+
+    #notification-globale {
+      visibility: hidden;
+      min-width: 300px;
+      background-color: #1e293b;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 15px 20px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      box-shadow: 0px 10px 15px -3px rgba(0,0,0,0.3);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    #notification-globale.show {
+      visibility: visible;
+      animation: fadeInOut 4s ease-in-out;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, 20px); }
+      15% { opacity: 1; transform: translate(-50%, 0); }
+      85% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, 20px); }
+    }
   </style>
 </head>
 <body>
@@ -286,7 +364,6 @@
   <div class="app-layout">
     <main>
 
-      <!-- Menu Déroulant des Catégories -->
       <div class="dropdown-category-container">
         <button class="dropdown-toggle-btn" onclick="toggleDropdownCategories()">
           📂 Catégories <span id="currentCategoryLabel">(Toutes)</span> ▼
@@ -303,7 +380,6 @@
         </ul>
       </div>
 
-      <!-- Connexion Admin -->
       <div id="loginForm" class="admin-panel hidden">
         <h3>Connexion Gestionnaire</h3>
         <div class="form-grid">
@@ -313,7 +389,6 @@
         </div>
       </div>
 
-      <!-- ESPACE GESTION DES RÉSERVATIONS (Admin) -->
       <div id="reservationsPanel" class="admin-panel hidden" style="border-left: 4px solid var(--primary);">
         <div class="admin-tabs">
           <div class="admin-tab-group">
@@ -325,7 +400,6 @@
         <div id="reservationsList">Chargement...</div>
       </div>
 
-      <!-- Ajout Matériel (Admin) -->
       <div id="adminPanel" class="admin-panel hidden">
         <h3>Ajouter un équipement au stock</h3>
         <form id="addHardwareForm" class="form-grid" onsubmit="ajouterMateriel(event)">
@@ -345,7 +419,6 @@
         </form>
       </div>
 
-      <!-- Barre de Recherche -->
       <div class="search-container">
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" class="search-bar" placeholder="Rechercher un équipement..." oninput="afficherMateriel()">
@@ -355,6 +428,53 @@
       <div id="materielList"></div>
 
     </main>
+  </div>
+
+  <!-- MODALE MODIFICATION MATERIEL (3 points -> Modifier) -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3>✏️ Modifier l'équipement</h3>
+        <button class="close-btn" onclick="fermerModalEdit()">&times;</button>
+      </div>
+      <form id="editForm" onsubmit="enregistrerModificationMateriel(event)">
+        <input type="hidden" id="editItemId">
+        
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Nom du matériel :</label>
+          <input type="text" id="editNom" required>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Catégorie :</label>
+          <select id="editCategorie" required>
+            <option value="Câbles">Câbles</option>
+            <option value="Caméra">Caméra</option>
+            <option value="Micro">Micro</option>
+            <option value="Projecteur">Projecteur</option>
+            <option value="Son">Son</option>
+            <option value="Écran">Écran</option>
+            <option value="Autres">Autres</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+          <div style="flex: 1;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Stock Total :</label>
+            <input type="number" id="editTotal" min="0" required oninput="calculerNouveauDispoAjuste()">
+          </div>
+          <div style="flex: 1;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Stock Dispo:</label>
+            <input type="number" id="editDispo" min="0" required>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button type="button" onclick="fermerModalEdit()">Annuler</button>
+          <button type="submit" class="primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODALE DU PANIER ÉTUDIANT -->
@@ -422,6 +542,8 @@
     </div>
   </div>
 
+  <div id="notification-globale">Votre réservation a bien été enregistrée. Une réponse vous sera faite par mail.</div>
+
   <!-- JS FIREBASE & LOGIQUE APPLICATIVE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -460,6 +582,14 @@
 
     let panier = JSON.parse(localStorage.getItem('bureau_pret_panier')) || [];
 
+    function afficherNotificationGlobale() {
+      const notif = document.getElementById("notification-globale");
+      notif.className = "show";
+      setTimeout(function() {
+        notif.className = "";
+      }, 4000);
+    }
+
     function formatDateFR(dateStr) {
       if (!dateStr) return '';
       if (dateStr.includes('-')) {
@@ -488,7 +618,6 @@
       badge.textContent = total;
     }
 
-    // Gestion du menu déroulant des catégories
     window.toggleDropdownCategories = () => {
       const menu = document.getElementById('categoryDropdownMenu');
       menu.classList.toggle('hidden');
@@ -510,6 +639,10 @@
       if (container && !container.contains(e.target)) {
         const menu = document.getElementById('categoryDropdownMenu');
         if (menu) menu.classList.add('hidden');
+      }
+      // Fermer les menus 3 points si clic ailleurs
+      if (!e.target.closest('.item-menu-container')) {
+        document.querySelectorAll('.item-dropdown-menu').forEach(m => m.classList.add('hidden'));
       }
     });
 
@@ -546,7 +679,7 @@
 
     onSnapshot(collection(db, "reservations"), (snapshot) => {
       if (currentUser && snapshot.docChanges().some(change => change.type === 'added')) {
-        audioNotif.play().catch(e => console.log("Audio bloqué par le navigateur:", e));
+        audioNotif.play().catch(e => console.log("Audio bloqué:", e));
       }
       reservationsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       afficherReservationsAdmin();
@@ -582,7 +715,15 @@
             <div style="margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
               <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo - 1}, ${stockTotal})" ${stockDispo <= 0 ? 'disabled' : ''}>-1</button>
               <button class="qty-btn" onclick="modifierStock('${item.id}', ${stockDispo + 1}, ${stockTotal})" ${stockDispo >= stockTotal ? 'disabled' : ''}>+1</button>
-              <button class="danger" onclick="supprimerMateriel('${item.id}')" style="padding: 4px 8px; font-size: 0.75rem;">Supprimer</button>
+              
+              <!-- Menu 3 points administration -->
+              <div class="item-menu-container">
+                <button class="menu-dots-btn" onclick="toggleItemMenu(event, '${item.id}')">⋮</button>
+                <ul class="item-dropdown-menu hidden" id="menu-${item.id}">
+                  <li onclick="ouvrirModalEdit('${item.id}')">✏️ Modifier</li>
+                  <li class="delete-opt" onclick="supprimerMateriel('${item.id}')">🗑️ Supprimer</li>
+                </ul>
+              </div>
             </div>
           `;
         } else if (isDispo) {
@@ -613,6 +754,71 @@
       });
     };
 
+    window.toggleItemMenu = (e, id) => {
+      e.stopPropagation();
+      document.querySelectorAll('.item-dropdown-menu').forEach(m => {
+        if (m.id !== `menu-${id}`) m.classList.add('hidden');
+      });
+      const menu = document.getElementById(`menu-${id}`);
+      if (menu) menu.classList.toggle('hidden');
+    };
+
+    // Gestion de la modale de modification d'un équipement
+    window.ouvrirModalEdit = (id) => {
+      const item = materielsData.find(m => m.id === id);
+      if (!item) return;
+
+      document.getElementById('editItemId').value = item.id;
+      document.getElementById('editNom').value = item.nom;
+      document.getElementById('editCategorie').value = item.categorie || 'Autres';
+      document.getElementById('editTotal').value = item.quantiteTotal ?? 1;
+      document.getElementById('editDispo').value = item.quantiteDispo ?? 1;
+
+      document.getElementById('editModal').classList.remove('hidden');
+      document.querySelectorAll('.item-dropdown-menu').forEach(m => m.classList.add('hidden'));
+    };
+
+    window.fermerModalEdit = () => {
+      document.getElementById('editModal').classList.add('hidden');
+    };
+
+    window.calculerNouveauDispoAjuste = () => {
+      // Optionnel : si le stock total augmente (nouvel arrivage), on peut ajuster automatiquement ou laisser le gestionnaire choisir.
+    };
+
+    window.enregistrerModificationMateriel = async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editItemId').value;
+      const nom = document.getElementById('editNom').value.trim();
+      const categorie = document.getElementById('editCategorie').value;
+      const quantiteTotal = parseInt(document.getElementById('editTotal').value, 10);
+      const quantiteDispo = parseInt(document.getElementById('editDispo').value, 10);
+
+      if (!nom || isNaN(quantiteTotal) || isNaN(quantiteDispo)) {
+        alert("Veuillez remplir correctement tous les champs.");
+        return;
+      }
+
+      if (quantiteDispo > quantiteTotal) {
+        alert("Le stock disponible ne peut pas être supérieur au stock total.");
+        return;
+      }
+
+      try {
+        await updateDoc(doc(db, "materiel", id), {
+          nom,
+          categorie,
+          quantiteTotal,
+          quantiteDispo
+        });
+        fermerModalEdit();
+        alert("Équipement mis à jour avec succès !");
+      } catch (err) {
+        console.error("Erreur modification:", err);
+        alert("Erreur lors de la modification : " + err.message);
+      }
+    };
+
     window.ajouterAuPanier = (id, nom, stockMax) => {
       const qteInput = document.getElementById(`qty-${id}`);
       const qte = parseInt(qteInput.value, 10);
@@ -634,12 +840,10 @@
       }
 
       sauvegarderPanier();
-      alert("Équipement ajouté au panier !");
     };
 
     window.ouvrirModalPanier = () => {
       const cartDateInput = document.getElementById('cartDate');
-      
       const demain = new Date();
       demain.setDate(demain.getDate() + 1);
       const minDateStr = demain.toISOString().split('T')[0];
@@ -718,15 +922,8 @@
         return;
       }
 
-      if (!date || !nom || !prenom || !niveau || !email) {
+      if (!date || !nom || !prenom || !niveau || !email || panier.length === 0) {
         alert("Veuillez remplir tous les champs.");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Envoyer la réservation";
-        return;
-      }
-
-      if (panier.length === 0) {
-        alert("Votre panier est vide.");
         submitBtn.disabled = false;
         submitBtn.textContent = "Envoyer la réservation";
         return;
@@ -752,7 +949,7 @@
           });
         }
 
-        alert("Demande de réservation envoyée avec succès !");
+        afficherNotificationGlobale();
         panier = [];
         sauvegarderPanier();
         fermerModalPanier();
@@ -774,320 +971,226 @@
       afficherReservationsAdmin();
     };
 
-    window.viderHistorique = async () => {
-      const historique = reservationsData.filter(r => r.statut !== "en_attente");
-      if (historique.length === 0) {
-        alert("L'historique est déjà vide.");
-        return;
-      }
-
-      if (confirm(`Voulez-vous supprimer définitivement l'historique complet ?`)) {
-        for (const item of historique) {
-          await deleteDoc(doc(db, "reservations", item.id));
-        }
-        alert("Historique vidé avec succès.");
-      }
-    };
-
-    // Suppression complète d'une réservation groupée entière
-    window.supprimerReservationGroupe = async (groupKey) => {
-      if (confirm("Voulez-vous supprimer définitivement cette réservation de l'historique ?")) {
-        try {
-          const itemsASupprimer = reservationsData.filter(r => 
-            (r.groupId || `${r.studentEmail}_${r.createdAt?.substring(0,16)}`) === groupKey
-          );
-          for (const item of itemsASupprimer) {
-            await deleteDoc(doc(db, "reservations", item.id));
-          }
-        } catch(err) {
-          alert("Erreur lors de la suppression : " + err.message);
-        }
-      }
-    };
-
     function afficherReservationsAdmin() {
       const container = document.getElementById('reservationsList');
       if (!container) return;
 
-      let liste = [];
-      if (activeAdminTab === 'attente') {
-        liste = reservationsData.filter(r => r.statut === "en_attente");
-      } else {
-        liste = reservationsData.filter(r => r.statut !== "en_attente");
-      }
+      const filtered = reservationsData.filter(r => {
+        if (activeAdminTab === 'attente') return r.statut === 'en_attente';
+        return r.statut === 'validee' || r.statut === 'refusee';
+      });
 
-      if (liste.length === 0) {
-        container.innerHTML = `<p style='color: var(--text-muted); font-size: 0.85rem;'>Aucune réservation enregistrée ici.</p>`;
+      if (filtered.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; margin: 10px 0;">Aucune demande pour le moment.</p>`;
         return;
       }
 
-      const groupes = {};
-      liste.forEach(r => {
-        const key = r.groupId || `${r.studentEmail}_${r.createdAt?.substring(0,16)}`;
-        if (!groupes[key]) {
-          groupes[key] = {
-            id: key,
-            studentPrenom: r.studentPrenom,
+      const groups = {};
+      filtered.forEach(r => {
+        const gId = r.groupId || r.id;
+        if (!groups[gId]) {
+          groups[gId] = {
+            groupId: gId,
             studentNom: r.studentNom,
-            studentNiveau: r.studentNiveau || 'Non spécifié',
+            studentPrenom: r.studentPrenom,
+            studentNiveau: r.studentNiveau,
             studentEmail: r.studentEmail,
             dateEmprunt: r.dateEmprunt,
-            typePret: r.typePret || 'court',
+            typePret: r.typePret,
+            createdAt: r.createdAt,
             items: []
           };
         }
-        groupes[key].items.push(r);
+        groups[gId].items.push(r);
       });
 
       let html = "";
-
-      Object.values(groupes).forEach(groupe => {
-        const dateEmpruntFR = formatDateFR(groupe.dateEmprunt);
-        const dureeTexte = groupe.typePret === 'long' ? 'Prêt long (7j)' : 'Prêt court (1j)';
-
-        // Bouton de suppression de la réservation entière si on est dans l'historique
-        let deleteGroupBtn = "";
-        if (activeAdminTab === 'historique') {
-          deleteGroupBtn = `<button class="danger" style="padding: 4px 8px; font-size: 0.75rem; margin-top: 4px;" onclick="supprimerReservationGroupe('${groupe.id}')">🗑️ Supprimer cette réservation</button>`;
-        }
+      Object.values(groups).forEach(group => {
+        const dateFormatee = formatDateFR(group.dateEmprunt);
+        const dateFin = group.typePret === 'long' ? ajouterJoursDate(group.dateEmprunt, 7) : ajouterJoursDate(group.dateEmprunt, 1);
+        const dateFinFormatee = formatDateFR(dateFin);
 
         html += `
           <div class="group-card">
             <div class="group-header">
-              <div>
-                <div class="group-user-info">👤 ${groupe.studentPrenom} ${groupe.studentNom} <span style="font-weight: normal; font-size: 0.8rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">${groupe.studentNiveau}</span></div>
-                <div style="font-size:0.75rem; color:var(--text-muted); word-break: break-all;">${groupe.studentEmail} — <span style="font-weight:600; color:var(--text-main);">${dureeTexte}</span></div>
+              <div class="group-user-info">
+                👤 ${group.studentNom} ${group.studentPrenom} (${group.studentNiveau}) - <a href="mailto:${group.studentEmail}">${group.studentEmail}</a>
               </div>
-              <div style="text-align: right;">
-                <div class="group-date">📅 Prêt : <strong>${dateEmpruntFR}</strong></div>
-                ${deleteGroupBtn}
+              <div class="group-date">
+                📅 Du ${dateFormatee} au ${dateFinFormatee} (${group.typePret === 'long' ? 'Prêt long 7j' : 'Prêt court 1j'})
               </div>
             </div>
-
-            <div class="group-body">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
         `;
 
-        groupe.items.forEach(item => {
-          let selection = adminChoices[item.id] || "attente";
-          let qteValidee = adminQuantities[item.id] !== undefined ? adminQuantities[item.id] : item.quantite;
-          let motif = adminMotifs[item.id] || "";
+        group.items.forEach(item => {
+          const statutTag = item.statut === 'validee' 
+            ? `<span class="tag-statut tag-validee">Validée</span>` 
+            : item.statut === 'refusee' 
+            ? `<span class="tag-statut tag-refusee">Refusée</span>` 
+            : `<span class="tag-statut" style="background:#fef3c7; color:#92400e;">En attente</span>`;
 
-          const materielObjet = materielsData.find(m => m.id === item.materielId || m.nom === item.materielNom);
-          let stockDirectText = "";
-          if (materielObjet) {
-            stockDirectText = `<span class="stock-info-tag">Stock: ${materielObjet.quantiteDispo ?? 0}/${materielObjet.quantiteTotal ?? 0}</span>`;
+          let actionsOrStatus = "";
+          if (activeAdminTab === 'attente') {
+            const currentChoice = adminChoices[item.id] || 'validee';
+            const currentQty = adminQuantities[item.id] !== undefined ? adminQuantities[item.id] : item.quantite;
+            const currentMotif = adminMotifs[item.id] || '';
+
+            actionsOrStatus = `
+              <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px;">
+                <button type="button" class="${currentChoice === 'validee' ? 'btn-toggle-validee' : ''}" onclick="setAdminChoice('${item.id}', 'validee')">Valider</button>
+                <button type="button" class="${currentChoice === 'refusee' ? 'btn-toggle-refusee' : ''}" onclick="setAdminChoice('${item.id}', 'refusee')">Refuser</button>
+                <input type="number" value="${currentQty}" min="1" max="${item.quantite}" style="width: 60px; padding: 4px;" onchange="setAdminQty('${item.id}', this.value)" title="Quantité accordée">
+                <input type="text" value="${currentMotif}" placeholder="Motif (si refus/modif)..." style="flex-grow: 1; padding: 4px 8px; font-size: 0.8rem;" oninput="setAdminMotif('${item.id}', this.value)">
+                <button class="primary" style="padding: 4px 10px; font-size: 0.8rem;" onclick="traiterReservation('${item.id}', '${group.groupId}')">Appliquer</button>
+              </div>
+            `;
+          } else {
+            actionsOrStatus = `
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px;">
+                <div>${statutTag} ${item.motif ? `<span style="font-size:0.8rem; color:var(--text-muted); margin-left:8px;">(${item.motif})</span>` : ''}</div>
+                <button class="danger" style="padding: 2px 6px; font-size: 0.7rem;" onclick="supprimerReservationItem('${item.id}')">Supprimer de l'historique</button>
+              </div>
+            `;
           }
-
-          let tagStatut = "";
-          if (item.statut === "validee") tagStatut = `<span class="tag-statut tag-validee">Acceptée (${item.quantiteValidee ?? item.quantite})</span>`;
-          else if (item.statut === "refusee") tagStatut = `<span class="tag-statut tag-refusee">Refusée</span>`;
 
           html += `
             <div class="item-choice-row">
               <div class="item-choice-main">
-                <div>
-                  <strong>${item.materielNom}</strong> (Demandé: ${item.quantite}) ${stockDirectText}
-                </div>
-                
-                <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
-                  ${activeAdminTab === 'attente' ? `
-                    <button type="button" 
-                            class="${selection === 'validee' ? 'btn-toggle-validee' : ''}" 
-                            style="padding: 4px 8px; font-size: 0.75rem;" 
-                            onclick="choisirStatutItem('${item.id}', 'validee')">
-                      ✓ Accepter
-                    </button>
-                    <button type="button" 
-                            class="${selection === 'refusee' ? 'btn-toggle-refusee' : ''}" 
-                            style="padding: 4px 8px; font-size: 0.75rem;" 
-                            onclick="choisirStatutItem('${item.id}', 'refusee')">
-                      ✕ Refuser
-                    </button>
-                  ` : `
-                    ${tagStatut}
-                  `}
-                </div>
+                <div><strong>${item.materielNom}</strong> (Demandé: ${item.quantite})</div>
+                <div>${activeAdminTab === 'attente' ? statutTag : ''}</div>
               </div>
-
-              ${activeAdminTab === 'attente' && selection === 'validee' ? `
-                <div style="display: flex; gap: 8px; align-items: center; background: #f8fafc; padding: 6px; border-radius: 6px; margin-top: 4px; flex-wrap: wrap;">
-                  <label style="font-size: 0.75rem; font-weight: 600;">Qté :</label>
-                  <input type="number" value="${qteValidee}" min="1" max="${item.quantite}" style="width: 60px; padding: 4px;" onchange="changerQteAdmin('${item.id}', this.value)">
-                  <input type="text" placeholder="Note/Raison..." value="${motif}" style="flex-grow: 1; padding: 4px; font-size: 0.75rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
-                </div>
-              ` : ''}
-
-              ${activeAdminTab === 'attente' && selection === 'refusee' ? `
-                <div style="background: #f8fafc; padding: 6px; border-radius: 6px; margin-top: 4px;">
-                  <input type="text" placeholder="Raison du refus..." value="${motif}" style="width: 100%; padding: 4px; font-size: 0.75rem;" onchange="changerMotifAdmin('${item.id}', this.value)">
-                </div>
-              ` : ''}
-
-              ${activeAdminTab === 'historique' && item.motif ? `
-                <div style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">
-                  Note : ${item.motif}
-                </div>
-              ` : ''}
+              ${actionsOrStatus}
             </div>
           `;
         });
 
-        html += `</div>`;
-
-        if (activeAdminTab === 'attente') {
-          html += `
-            <div style="margin-top: 12px; text-align: right;">
-              <button class="primary" onclick="validerGroupeGlobal('${groupe.id}')" style="width: 100%;">
-                📧 Valider et envoyer la décision
-              </button>
-            </div>
-          `;
-        }
-
-        html += `</div>`;
+        html += `</div></div>`;
       });
 
       container.innerHTML = html;
     }
 
-    window.choisirStatutItem = (itemId, statut) => {
-      adminChoices[itemId] = statut;
+    window.setAdminChoice = (id, choice) => {
+      adminChoices[id] = choice;
       afficherReservationsAdmin();
     };
 
-    window.changerQteAdmin = (itemId, qte) => {
-      adminQuantities[itemId] = parseInt(qte, 10);
+    window.setAdminQty = (id, qty) => {
+      adminQuantities[id] = parseInt(qty, 10);
     };
 
-    window.changerMotifAdmin = (itemId, text) => {
-      adminMotifs[itemId] = text.trim();
+    window.setAdminMotif = (id, motif) => {
+      adminMotifs[id] = motif;
     };
 
-    window.validerGroupeGlobal = async (groupKey) => {
-      const itemsGroupe = reservationsData.filter(r => 
-        (r.groupId || `${r.studentEmail}_${r.createdAt?.substring(0,16)}`) === groupKey
-      );
+    window.traiterReservation = async (reservationId, groupId) => {
+      const choice = adminChoices[reservationId] || 'validee';
+      const qtyAccordee = adminQuantities[reservationId] !== undefined ? adminQuantities[reservationId] : null;
+      const motif = adminMotifs[reservationId] || '';
 
-      for (const item of itemsGroupe) {
-        if (!adminChoices[item.id]) {
-          alert(`Veuillez accepter ou refuser chaque élément du groupe avant de valider.`);
-          return;
-        }
-      }
+      const r = reservationsData.find(item => item.id === reservationId);
+      if (!r) return;
 
-      let acceptes = [];
-      let mefuses = [];
+      const finalQty = qtyAccordee !== null ? qtyAccordee : r.quantite;
 
-      for (const item of itemsGroupe) {
-        const choix = adminChoices[item.id];
-        const qteAccordee = adminQuantities[item.id] !== undefined ? adminQuantities[item.id] : item.quantite;
-        const motif = adminMotifs[item.id] || "";
-
-        await updateDoc(doc(db, "reservations", item.id), { 
-          statut: choix,
-          quantiteValidee: choix === "validee" ? qteAccordee : 0,
+      try {
+        await updateDoc(doc(db, "reservations", reservationId), {
+          statut: choice === 'validee' ? 'validee' : 'refusee',
+          quantiteAccordee: finalQty,
           motif: motif
         });
 
-        if (choix === "validee") {
-          let detail = `• ${item.materielNom} : ${qteAccordee} accordé(s)`;
-          if (motif) detail += ` (${motif})`;
-          acceptes.push(detail);
-        } else {
-          let detail = `• ${item.materielNom}`;
-          if (motif) detail += ` — Raison : ${motif}`;
-          mefuses.push(detail);
+        if (choice === 'validee') {
+          const mat = materielsData.find(m => m.id === r.materielId);
+          if (mat) {
+            const nouveauStock = Math.max(0, (mat.quantiteDispo ?? mat.quantiteTotal) - finalQty);
+            await updateDoc(doc(db, "materiel", r.materielId), {
+              quantiteDispo: nouveauStock
+            });
+          }
         }
-      }
 
-      const premier = itemsGroupe[0];
-      const dateEmprunt = premier.dateEmprunt;
-      const typePret = premier.typePret || 'court';
-      const dateFR = formatDateFR(dateEmprunt);
-      
-      let dateRetourPrevue = dateEmprunt;
-      let dateRappelEmail = "";
-
-      if (acceptes.length > 0) {
-        if (typePret === 'long') {
-          dateRetourPrevue = ajouterJoursDate(dateEmprunt, 7);
-          dateRappelEmail = ajouterJoursDate(dateEmprunt, 6);
-        } else {
-          dateRetourPrevue = ajouterJoursDate(dateEmprunt, 1);
+        if (typeof emailjs !== 'undefined') {
+          const templateParams = {
+            to_email: r.studentEmail,
+            to_name: `${r.studentPrenom} ${r.studentNom}`,
+            message: `Votre demande pour ${r.materielNom} a été ${choice === 'validee' ? 'validée' : 'refusée'}.${motif ? ' Motif : ' + motif : ''}`
+          };
+          emailjs.send('default_service', 'template_id', templateParams).catch(err => console.error("EmailJS error:", err));
         }
-      }
 
-      const dateRetourFR = formatDateFR(dateRetourPrevue);
-      const dateRappelFR = formatDateFR(dateRappelEmail);
-
-      let messageEmail = `Bonjour ${premier.studentPrenom},\n\nVoici la réponse concernant votre demande de réservation (${typePret === 'long' ? 'Prêt long de 7 jours' : 'Prêt court de 1 jour'}) prévue pour le ${dateFR} :\n\n`;
-
-      if (acceptes.length > 0) {
-        messageEmail += `✅ ÉQUIPEMENT(S) VALIDÉ(S) :\n${acceptes.join('\n')}\n`;
-        messageEmail += `• Date de retour prévue : le ${dateRetourFR}\n`;
-        if (typePret === 'long' && dateRappelEmail) {
-          messageEmail += `(Un e-mail de rappel vous sera envoyé le ${dateRappelFR}, soit le 6ème jour, pour vous rappeler que le matériel doit être rendu le lendemain).\n`;
-        }
-        messageEmail += `\n(Vous pourrez venir les récupérer directement au bureau de prêt.)\n\n`;
-      }
-
-      if (mefuses.length > 0) {
-        messageEmail += `❌ ÉQUIPEMENT(S) REFUSÉ(S) :\n${mefuses.join('\n')}\n\n`;
-      }
-
-      messageEmail += "Cordialement,\nL'équipe du Bureau de Prêt.\n\n--------------------------------------------------\n⚠️ ATTENTION : Merci de ne pas répondre à cet e-mail. Ce message est envoyé automatiquement et les réponses ne seront pas lues.";
-
-      try {
-        await emailjs.send("service_bectm04", "template_pqtasnz", {
-          to_email: premier.studentEmail,
-          to_name: `${premier.studentPrenom} ${premier.studentNom}`,
-          subject: "Décision concernant votre demande de réservation",
-          message: messageEmail,
-          date_emprunt: dateFR,
-          materiel: acceptes.join(', ') || mefuses.join(', '), 
-          statut: acceptes.length > 0 ? "Acceptée" : "Refusée"
-        });
-        alert(`Décision enregistrée et e-mail envoyé à ${premier.studentEmail}.`);
+        alert("Traitement enregistré avec succès !");
       } catch (err) {
-        console.error("Erreur d'envoi d'email EmailJS :", err);
-        alert(`Décision enregistrée, mais échec de l'envoi du mail automatique.`);
+        console.error("Erreur traitement :", err);
+        alert("Erreur : " + err.message);
       }
+    };
 
-      itemsGroupe.forEach(item => {
-        delete adminChoices[item.id];
-        delete adminQuantities[item.id];
-        delete adminMotifs[item.id];
-      });
+    window.supprimerReservationItem = async (id) => {
+      if (!confirm("Voulez-vous supprimer cet élément de l'historique ?")) return;
+      try {
+        await deleteDoc(doc(db, "reservations", id));
+      } catch (err) {
+        alert("Erreur : " + err.message);
+      }
+    };
+
+    window.viderHistorique = async () => {
+      if (!confirm("Voulez-vous vider tout l'historique des réservations traitées ?")) return;
+      try {
+        const toDelete = reservationsData.filter(r => r.statut === 'validee' || r.statut === 'refusee');
+        for (const item of toDelete) {
+          await deleteDoc(doc(db, "reservations", item.id));
+        }
+        alert("Historique vidé.");
+      } catch (err) {
+        alert("Erreur : " + err.message);
+      }
     };
 
     window.ajouterMateriel = async (e) => {
       e.preventDefault();
-      const nom = document.getElementById('nomMateriel').value;
+      const nom = document.getElementById('nomMateriel').value.trim();
       const categorie = document.getElementById('categorieMateriel').value;
       const quantite = parseInt(document.getElementById('quantiteInitiale').value, 10);
 
-      await addDoc(collection(db, "materiel"), {
-        nom: nom,
-        categorie: categorie,
-        quantiteTotal: quantite,
-        quantiteDispo: quantite
-      });
+      if (!nom || !categorie || isNaN(quantite)) return;
 
-      document.getElementById('addHardwareForm').reset();
-    };
-
-    window.modifierStock = async (id, nouvelleQuantiteDispo, stockTotal) => {
-      if (nouvelleQuantiteDispo < 0 || nouvelleQuantiteDispo > stockTotal) return;
-      await updateDoc(doc(db, "materiel", id), { quantiteDispo: nouvelleQuantiteDispo });
-    };
-
-    window.supprimerMateriel = async (id) => {
-      if (confirm("Voulez-vous supprimer cet équipement du catalogue ?")) {
-        await deleteDoc(doc(db, "materiel", id));
+      try {
+        await addDoc(collection(db, "materiel"), {
+          nom,
+          categorie,
+          quantiteTotal: quantite,
+          quantiteDispo: quantite
+        });
+        document.getElementById('addHardwareForm').reset();
+        alert("Équipement ajouté au stock avec succès !");
+      } catch (err) {
+        alert("Erreur : " + err.message);
       }
     };
 
-    actualiserBadgePanier();
+    window.modifierStock = async (id, nouveauDispo, total) => {
+      if (nouveauDispo < 0 || nouveauDispo > total) return;
+      try {
+        await updateDoc(doc(db, "materiel", id), {
+          quantiteDispo: nouveauDispo
+        });
+      } catch (err) {
+        alert("Erreur : " + err.message);
+      }
+    };
+
+    window.supprimerMateriel = async (id) => {
+      if (!confirm("Voulez-vous supprimer cet équipement du catalogue ?")) return;
+      try {
+        await deleteDoc(doc(db, "materiel", id));
+      } catch (err) {
+        alert("Erreur : " + err.message);
+      }
+    };
   </script>
+
 </body>
 </html>
