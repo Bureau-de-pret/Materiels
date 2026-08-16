@@ -1134,6 +1134,7 @@
           stockImmediatImpacte = true;
         }
 
+        // 1. Mise à jour prioritaire dans Firestore
         await updateDoc(doc(db, "reservations", resaId), {
           statut: statutFinal,
           items: itemsFinal,
@@ -1141,6 +1142,7 @@
           stockDecompte: stockImmediatImpacte
         });
 
+        // 2. Envoi de l'e-mail en arrière-plan sans bloquer l'affichage
         let listeMaterielHtml = "";
         let texteMoinsMateriel = false;
 
@@ -1187,8 +1189,11 @@
           message: messageCompletFinal
         };
 
-        await emailjs.send('service_fz68jl1', 'template_pqtasnz', templateParams);
-        alert("Traitement effectué et e-mail envoyé avec succès !");
+        await emailjs.send('service_fz68jl1', 'template_pqtasnz', templateParams);.catch(mailErr => {
+          console.error("Erreur d'envoi d'e-mail (non bloquante):", mailErr);
+        });
+
+        alert("Traitement effectué avec succès ! La demande a basculé dans l'historique.");
       } catch (err) {
         alert("Erreur lors du traitement : " + err.message);
       }
