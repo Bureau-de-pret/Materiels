@@ -173,8 +173,8 @@
       .form-grid { flex-direction: row; align-items: center; }
     }
 
-    input, select { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 0.9rem; outline: none; width: 100%; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
-    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    input, select, textarea { padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 0.9rem; outline: none; width: 100%; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
 
     button { cursor: pointer; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; font-family: inherit; font-weight: 500; font-size: 0.85rem; transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease; }
     button:active { transform: scale(0.95); }
@@ -184,6 +184,49 @@
     button.danger { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
     button.danger:hover { background: #fee2e2; }
     button.qty-btn { padding: 4px 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; }
+
+    /* Styles spécifiques pour les boutons de validation admin interactifs */
+    .btn-choice-valider {
+      flex: 1;
+      padding: 10px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
+      color: var(--success-text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-choice-valider.selected {
+      background: var(--success-bg);
+      border-color: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    }
+
+    .btn-choice-refuser {
+      flex: 1;
+      padding: 10px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: var(--danger);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-choice-refuser.selected {
+      background: #fee2e2;
+      border-color: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
 
     .item-menu-container {
       position: relative;
@@ -679,10 +722,11 @@
       for (const resa of reservationsData) {
         if (resa.statut === 'validee' && !resa.stockDecompte && resa.dateDebut <= aujourdhuiStr) {
           for (const it of resa.items) {
-            if (it.quantite > 0) {
+            const qteAttribuee = it.quantiteAttribuee !== undefined ? it.quantiteAttribuee : it.quantite;
+            if (qteAttribuee > 0) {
               const matRef = materielsData.find(m => m.id === it.id);
               if (matRef) {
-                const nouveauDispo = Math.max(0, (matRef.quantiteDispo ?? 0) - it.quantite);
+                const nouveauDispo = Math.max(0, (matRef.quantiteDispo ?? 0) - qteAttribuee);
                 await updateDoc(doc(db, "materiel", it.id), { quantiteDispo: nouveauDispo });
               }
             }
@@ -788,7 +832,8 @@
           id: item.id,
           nom: item.nom,
           categorie: item.categorie,
-          quantite: qteDemandee
+          quantite: qteDemandee,
+          quantiteAttribuee: qteDemandee // Initialisé à la quantité demandée
         });
       }
 
@@ -842,7 +887,6 @@
       afficherContenuPanier();
     };
 
-    // CORRIGÉ : Intègre le téléphone ET le flag stockDecompte: false pour que le stock auto fonctionne
     window.validerPanierDirectement = async () => {
       const typePret = document.getElementById('cartTypePret').value;
       const dateDebut = document.getElementById('cartDate').value;
@@ -862,17 +906,22 @@
       btnSubmit.textContent = "Envoi en cours...";
 
       try {
+        const itemsAvecAttribution = panier.map(item => ({
+          ...item,
+          quantiteAttribuee: item.quantite // Par défaut, attribution = demande initiale
+        }));
+
         const nouvelleResa = {
-          items: panier,
+          items: itemsAvecAttribution,
           typePret: typePret,
           dateDebut: dateDebut,
           nom: nom,
           prenom: prenom,
           niveau: niveau,
           email: email,
-          phone: phone, // Le numéro de téléphone est capturé correctement ici
+          phone: phone,
           statut: 'en_attente',
-          stockDecompte: false, // INDISPENSABLE pour que la gestion automatique des stocks fonctionne
+          stockDecompte: false,
           createdAt: new Date().toISOString()
         };
 
@@ -937,27 +986,76 @@
       filteredResas.forEach(resa => {
         const dateFin = resa.dateDebut ? ajouterJoursDate(resa.dateDebut, resa.typePret === 'long' ? 7 : 1) : '';
         
-        let actionsHtml = "";
+        let contentHtml = "";
         if (resa.statut === 'en_attente') {
-          actionsHtml = `
-            <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
-              <button class="primary" onclick="traiterReservation('${resa.id}', 'validee')">Valider</button>
-              <button class="danger" onclick="traiterReservation('${resa.id}', 'refusee')">Refuser</button>
+          // Panneau de traitement interactif comme sur la première image
+          let itemsListHtml = `<div style="margin: 8px 0; display: flex; flex-direction: column; gap: 8px;">`;
+          if (resa.items) {
+            resa.items.forEach((it, idx) => {
+              const qteAttribuee = it.quantiteAttribuee !== undefined ? it.quantiteAttribuee : it.quantite;
+              itemsListHtml += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;">
+                  <span>📦 <strong>${it.nom}</strong></span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Attribution :</label>
+                    <input type="number" id="attrib-${resa.id}-${idx}" value="${qteAttribuee}" min="0" max="${it.quantite}" style="width: 70px; padding: 4px 8px; text-align: center;" />
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">/ demandé (${it.quantite})</span>
+                  </div>
+                </div>
+              `;
+            });
+          }
+          itemsListHtml += `</div>`;
+
+          contentHtml = `
+            <div style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+              <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">Matériel demandé & quantités :</div>
+              ${itemsListHtml}
+              
+              <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button type="button" id="btn-val-${resa.id}" class="btn-choice-valider selected" onclick="setAdminChoice('${resa.id}', 'validee')">
+                  ✓ Valider
+                </button>
+                <button type="button" id="btn-ref-${resa.id}" class="btn-choice-refuser" onclick="setAdminChoice('${resa.id}', 'refusee')">
+                  ✕ Refuser
+                </button>
+              </div>
+
+              <div style="margin-top: 10px;">
+                <input type="text" id="motif-${resa.id}" placeholder="Motif ou remarque (optionnel pour la validation/refus)..." />
+              </div>
+
+              <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+                <button class="primary" style="width: 100%;" onclick="soumettreTraitementReservation('${resa.id}')">💾 Enregistrer & Envoyer l'e-mail</button>
+              </div>
             </div>
           `;
         } else {
           const statutClass = resa.statut === 'validee' ? 'tag-validee' : 'tag-refusee';
           const statutLabel = resa.statut === 'validee' ? 'Validée' : 'Refusée';
-          actionsHtml = `<div style="margin-top: 8px;"><span class="tag-statut ${statutClass}">${statutLabel}</span></div>`;
-        }
+          
+          let itemsListHtml = `<ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.85rem; color: var(--text-muted);">`;
+          if (resa.items) {
+            resa.items.forEach(it => {
+              const qteA = it.quantiteAttribuee !== undefined ? it.quantiteAttribuee : it.quantite;
+              itemsListHtml += `<li>${it.nom} (Attribué : ${qteA} / Demadé : ${it.quantite})</li>`;
+            });
+          }
+          itemsListHtml += `</ul>`;
 
-        let itemsListHtml = `<ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.85rem; color: var(--text-muted);">`;
-        if (resa.items) {
-          resa.items.forEach(it => {
-            itemsListHtml += `<li>${it.nom} (Qté : ${it.quantite})</li>`;
-          });
+          let motifHtml = resa.motif ? `<div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);"><em>Remarque : ${resa.motif}</em></div>` : '';
+
+          contentHtml = `
+            <div style="margin-top: 8px;">
+              <div style="font-size: 0.85rem; font-weight: 500;">Matériel :</div>
+              ${itemsListHtml}
+              ${motifHtml}
+              <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between;">
+                <span class="tag-statut ${statutClass}">${statutLabel}</span>
+              </div>
+            </div>
+          `;
         }
-        itemsListHtml += `</ul>`;
 
         html += `
           <div class="group-card">
@@ -971,9 +1069,7 @@
                 📅 Prêt du ${formatDateFR(resa.dateDebut)} au ${formatDateFR(dateFin)} (${resa.typePret})
               </div>
             </div>
-            <div style="font-size: 0.85rem; font-weight: 500;">Matériel demandé :</div>
-            ${itemsListHtml}
-            ${actionsHtml}
+            ${contentHtml}
           </div>
         `;
       });
@@ -981,12 +1077,96 @@
       container.innerHTML = html;
     };
 
-    window.traiterReservation = async (id, nouveauStatut) => {
+    // Gestion du choix visuel Valider / Refuser dans le panneau admin
+    window.adminChoicesState = window.adminChoicesState || {};
+    window.setAdminChoice = (resaId, choix) => {
+      window.adminChoicesState[resaId] = choix;
+      const btnVal = document.getElementById(`btn-val-${resaId}`);
+      const btnRef = document.getElementById(`btn-ref-${resaId}`);
+      if (btnVal && btnRef) {
+        if (choix === 'validee') {
+          btnVal.classList.add('selected');
+          btnRef.classList.remove('selected');
+        } else {
+          btnRef.classList.add('selected');
+          btnVal.classList.remove('selected');
+        }
+      }
+    };
+
+    window.soumettreTraitementReservation = async (resaId) => {
+      const statutChoisi = window.adminChoicesState[resaId] || 'validee';
+      const motifInput = document.getElementById(`motif-${resaId}`);
+      const motif = motifInput ? motifInput.value.trim() : "";
+
+      const resaRef = reservationsData.find(r => r.id === resaId);
+      if (!resaRef) return;
+
+      // Récupérer les nouvelles quantités attribuées modifiées par l'admin
+      const updatedItems = resaRef.items.map((it, idx) => {
+        const inputEl = document.getElementById(`attrib-${resaId}-${idx}`);
+        const qteAttr = inputEl ? parseInt(inputEl.value) || 0 : it.quantite;
+        return {
+          ...it,
+          quantiteAttribuee: qteAttr
+        };
+      });
+
+      // Vérifier si des changements de quantité ont eu lieu
+      let changementsTexte = "";
+      updatedItems.forEach(it => {
+        if (it.quantiteAttribuee !== it.quantite) {
+          changementsTexte += `\n- ${it.nom} : ${it.quantiteAttribuee} attribué(s) au lieu de ${it.quantite} demandé(s).`;
+        }
+      });
+
       try {
-        await updateDoc(doc(db, "reservations", id), { statut: nouveauStatut });
+        // Mettre à jour la réservation dans Firestore
+        await updateDoc(doc(db, "reservations", resaId), {
+          statut: statutChoisi,
+          items: updatedItems,
+          motif: motif
+        });
+
+        // Si la date du jour correspond ou est passée, ajuster directement le stock disponible du matériel
+        const aujourdhuiStr = new Date().toISOString().split('T')[0];
+        if (statutChoisi === 'validee' && resaRef.dateDebut <= aujourdhuiStr) {
+          for (const it of updatedItems) {
+            if (it.quantiteAttribuee > 0) {
+              const matRef = materielsData.find(m => m.id === it.id);
+              if (matRef) {
+                const nouveauDispo = Math.max(0, (matRef.quantiteDispo ?? 0) - it.quantiteAttribuee);
+                await updateDoc(doc(db, "materiel", it.id), { quantiteDispo: nouveauDispo });
+              }
+            }
+          }
+          await updateDoc(doc(db, "reservations", resaId), { stockDecompte: true });
+        }
+
+        // Envoyer l'e-mail via EmailJS avec le récapitulatif et les changements éventuels
+        let messageEmail = `Votre réservation pour le ${formatDateFR(resaRef.dateDebut)} a été ${statutChoisi === 'validee' ? 'validée' : 'refusée'}.`;
+        if (changementsTexte) {
+          messageEmail += `\n\nAttention, des modifications de quantités ont été appliquées :` + changementsTexte;
+        }
+        if (motif) {
+          messageEmail += `\n\nRemarque du gestionnaire : "${motif}"`;
+        }
+
+        const templateParams = {
+          to_email: resaRef.email,
+          to_name: `${resaRef.prenom} ${resaRef.nom}`,
+          message: messageEmail
+        };
+
+        if (typeof emailjs !== 'undefined') {
+          emailjs.send('default_service', 'template_id', templateParams).catch(err => console.log("EmailJS error:", err));
+        }
+
+        alert("Réservation traitée et e-mail envoyé avec succès !");
+
       } catch (err) {
-        console.error("Erreur mise à jour réservation :", err);
-        alert("Erreur lors du traitement de la réservation.");
+        console.error("Erreur traitement réservation :", err);
+        alert("Une erreur est survenue lors de l'enregistrement.");
       }
     };
 
