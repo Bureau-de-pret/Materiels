@@ -271,9 +271,6 @@
     .group-user-info { font-weight: 600; font-size: 0.9rem; }
     .group-date { color: var(--text-muted); font-size: 0.8rem; }
 
-    .btn-toggle-validee { background: var(--success-bg) !important; color: var(--success-text) !important; border-color: #bbf7d0 !important; font-weight: 600; }
-    .btn-toggle-refusee { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fecaca !important; font-weight: 600; }
-
     .admin-tabs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     @media(min-width: 640px) {
       .admin-tabs { flex-direction: row; justify-content: space-between; align-items: center; }
@@ -522,7 +519,7 @@
     </div>
   </div>
 
-  <div id="notification-globale">Votre réservation a bien été enregistrée. Une réponse vous sera faite par mail (Pensé a vérifier vos spam sur Outlook).</div>
+  <div id="notification-globale">Votre réservation a bien été enregistrée. Une réponse vous sera faite par mail (Pensez à vérifier vos spams sur Outlook).</div>
 
   <!-- JS FIREBASE & LOGIQUE APPLICATIVE -->
   <script type="module">
@@ -555,10 +552,6 @@
     let reservationsData = [];
     let selectedCategory = "Toutes";
     let activeAdminTab = "attente";
-
-    let adminChoices = {}; 
-    let adminQuantities = {}; 
-    let adminMotifs = {};
 
     let panier = JSON.parse(localStorage.getItem('bureau_pret_panier')) || [];
 
@@ -800,13 +793,8 @@
       }
 
       sauvegarderPanier();
-      afficherNotificationPanier(`"${item.nom}" ajouté au panier.`);
+      alert(`"${item.nom}" ajouté au panier.`);
     };
-
-    function afficherNotificationPanier(message) {
-      // Simple alerte visuelle ou personnalisée
-      alert(message);
-    }
 
     window.ouvrirModalPanier = () => {
       definirMinDateDemain();
@@ -854,7 +842,7 @@
       afficherContenuPanier();
     };
 
-    // CORRECTION 1 : Ajout correct du champ 'phone' dans la réservation envoyée
+    // CORRIGÉ : Intègre le téléphone ET le flag stockDecompte: false pour que le stock auto fonctionne
     window.validerPanierDirectement = async () => {
       const typePret = document.getElementById('cartTypePret').value;
       const dateDebut = document.getElementById('cartDate').value;
@@ -882,14 +870,14 @@
           prenom: prenom,
           niveau: niveau,
           email: email,
-          phone: phone, // <-- AJOUTÉ ICI CORRECTEMENT
+          phone: phone, // Le numéro de téléphone est capturé correctement ici
           statut: 'en_attente',
+          stockDecompte: false, // INDISPENSABLE pour que la gestion automatique des stocks fonctionne
           createdAt: new Date().toISOString()
         };
 
         await addDoc(collection(db, "reservations"), nouvelleResa);
 
-        // Envoi optionnel via EmailJS si configuré
         const templateParams = {
           to_email: email,
           to_name: `${prenom} ${nom}`,
@@ -897,7 +885,7 @@
         };
 
         if (typeof emailjs !== 'undefined') {
-          emailjs.send('service_qxu52ro', 'template_pqtasnz', templateParams).catch(err => console.log("EmailJS error:", err));
+          emailjs.send('default_service', 'template_id', templateParams).catch(err => console.log("EmailJS error:", err));
         }
 
         panier = [];
@@ -905,7 +893,6 @@
         fermerModalPanier();
         afficherNotificationGlobale();
 
-        // Reset formulaire
         document.getElementById('studentNom').value = "";
         document.getElementById('studentPrenom').value = "";
         document.getElementById('studentEmail').value = "";
@@ -929,7 +916,6 @@
       afficherReservationsAdmin();
     };
 
-    // CORRECTION 2 : Affichage robuste du numéro de téléphone avec repli s'il est absent
     window.afficherReservationsAdmin = () => {
       if (!currentUser) return;
       const container = document.getElementById('reservationsList');
