@@ -926,16 +926,6 @@
 
         await addDoc(collection(db, "reservations"), nouvelleResa);
 
-        const templateParams = {
-          to_email: email,
-          to_name: `${prenom} ${nom}`,
-          message: `Votre réservation pour le ${formatDateFR(dateDebut)} a bien été enregistrée et est en attente de validation.`
-        };
-
-        if (typeof emailjs !== 'undefined') {
-          emailjs.send('default_service', 'template_id', templateParams).catch(err => console.log("EmailJS error:", err));
-        }
-
         panier = [];
         sauvegarderPanier();
         fermerModalPanier();
@@ -1036,20 +1026,21 @@
           if (resa.items) {
             resa.items.forEach(it => {
               const qteA = it.quantiteAttribuee !== undefined ? it.quantiteAttribuee : it.quantite;
-              itemsListHtml += `<li>${it.nom} (Attribué : ${qteA} / Demandé : ${it.quantite})</li>`;
+              itemsListHtml += `<li>${it.nom} : ${qteA} exemplaire(s)</li>`;
             });
           }
           itemsListHtml += `</ul>`;
 
-          let motifHtml = resa.motif ? `<div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);"><em>Remarque : ${resa.motif}</em></div>` : '';
+          let motifHtml = resa.motif ? `<div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);">💬 **Remarque de l'équipe :** ${resa.motif}</div>` : '';
 
           contentHtml = `
             <div style="margin-top: 8px;">
-              <div style="font-size: 0.85rem; font-weight: 500;">Matériel :</div>
+              <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">📦 **Détail du matériel attribué :**</div>
               ${itemsListHtml}
               ${motifHtml}
-              <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between;">
+              <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
                 <span class="tag-statut ${statutClass}">${statutLabel}</span>
+                <button class="danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="supprimerReservationUnique('${resa.id}')">🗑️ Supprimer</button>
               </div>
             </div>
           `;
@@ -1064,7 +1055,7 @@
                 <div class="group-user-info">📞 ${resa.phone || 'Non renseigné'}</div>
               </div>
               <div class="group-date">
-                📅 Prêt du ${formatDateFR(resa.dateDebut)} au ${formatDateFR(dateFin)} (${resa.typePret})
+                📅 **Période :** Du ${formatDateFR(resa.dateDebut)} au ${formatDateFR(dateFin)}
               </div>
             </div>
             ${contentHtml}
@@ -1108,13 +1099,6 @@
         };
       });
 
-      let changementsTexte = "";
-      updatedItems.forEach(it => {
-        if (it.quantiteAttribuee !== it.quantite) {
-          changementsTexte += `\n- ${it.nom} : ${it.quantiteAttribuee} attribué(s) au lieu de ${it.quantite} demandé(s).`;
-        }
-      });
-
       try {
         await updateDoc(doc(db, "reservations", resaId), {
           statut: statutChoisi,
@@ -1136,28 +1120,25 @@
           await updateDoc(doc(db, "reservations", resaId), { stockDecompte: true });
         }
 
-        // Restauration du format d'e-mail détaillé avec smileys et état du stock
-        let smileyEtat = statutChoisi === 'validee' ? '✅' : '❌';
-        let statutTexteMail = statutChoisi === 'validee' ? 'VALIDÉE' : 'REFUSÉE';
-        
-        let messageEmail = `${smileyEtat} Bonjour ${resaRef.prenom} ${resaRef.nom},\n\nVotre demande de réservation pour le matériel du bureau de prêt (prévue le ${formatDateFR(resaRef.dateDebut)}) a été ${statutTexteMail}.`;
-        
+        const dateFinCalculée = ajouterJoursDate(resaRef.dateDebut, resaRef.typePret === 'long' ? 7 : 1);
+        let messageEmail = "";
+
         if (statutChoisi === 'validee') {
-          messageEmail += `\n\n📦 Détail du matériel attribué :`;
+          messageEmail = `🎉 Excellente nouvelle ! Votre demande de réservation pour le matériel suivant a été **VALIDÉE** :\n\n📅 **Période :** Du ${formatDateFR(resaRef.dateDebut)} au ${formatDateFR(dateFinCalculée)}\n\n📦 **Détail du matériel attribué :**`;
           updatedItems.forEach(it => {
-            messageEmail += `\n- ${it.nom} : ${it.quantiteAttribuee} unité(s) validée(s) (Demandé : ${it.quantite})`;
+            messageEmail += `\n• ${it.nom} : ${it.quantiteAttribuee} exemplaire(s)`;
           });
+          if (motif) {
+            messageEmail += `\n\n💬 **Remarque de l'équipe :** ${motif}`;
+          }
+          messageEmail += `\n\n📍 Vous pourrez venir récupérer votre matériel au Bureau de Prêt aux dates indiquées.\nÀ très bientôt ! 👋`;
+        } else {
+          messageEmail = `❌ Malheureusement, votre demande de réservation du ${formatDateFR(resaRef.dateDebut)} n'a pas pu être acceptée.`;
+          if (motif) {
+            messageEmail += `\n\n💬 **Motif :** ${motif}`;
+          }
+          messageEmail += `\n\nN'hésitez pas à repasser sur la plate-forme ou à venir directement nous voir sur place pour trouver une alternative. 💡\n\n----------------------------------------------------\n🤖 *Ceci est un message automatique, merci de ne pas répondre à cet e-mail.*`;
         }
-
-        if (changementsTexte) {
-          messageEmail += `\n\n⚠️ Ajustements sur le stock :` + changementsTexte;
-        }
-
-        if (motif) {
-          messageEmail += `\n\n💬 Remarque du gestionnaire : "${motif}"`;
-        }
-
-        messageEmail += `\n\nMerci de votre visite et à bientôt !\nL'équipe du Bureau de Prêt 📦`;
 
         const templateParams = {
           to_email: resaRef.email,
@@ -1174,6 +1155,16 @@
       } catch (err) {
         console.error("Erreur traitement réservation :", err);
         alert("Une erreur est survenue lors de l'enregistrement.");
+      }
+    };
+
+    window.supprimerReservationUnique = async (id) => {
+      if (!confirm("Voulez-vous vraiment supprimer cette réservation de l'historique ?")) return;
+      try {
+        await deleteDoc(doc(db, "reservations", id));
+      } catch (err) {
+        console.error("Erreur suppression réservation :", err);
+        alert("Erreur lors de la suppression.");
       }
     };
 
