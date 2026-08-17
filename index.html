@@ -893,6 +893,9 @@
       const prenom = document.getElementById('studentPrenom').value.trim();
       const niveau = document.getElementById('studentNiveau').value;
       const email = document.getElementById('studentEmail').value.trim();
+      if (email.toLowerCase().includes('@outlook.') || email.toLowerCase().includes('@hotmail.') || email.toLowerCase().includes('@live.') || email.toLowerCase().includes('@msn.')) {
+          alert("Votre réservation a bien été enregistrée !\n\n⚠️ Attention : Puisque vous utilisez une adresse Outlook/Microsoft, pensez à vérifier votre dossier de courrier indésirable (spams) pour retrouver la réponse du Bureau de Prêt.");
+        }
       const phone = document.getElementById('studentPhone').value.trim();
 
       if (!dateDebut || !nom || !prenom || !niveau || !email || !phone) {
