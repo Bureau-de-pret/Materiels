@@ -271,6 +271,9 @@
     .group-user-info { font-weight: 600; font-size: 0.9rem; }
     .group-date { color: var(--text-muted); font-size: 0.8rem; }
 
+    .btn-toggle-validee { background: var(--success-bg) !important; color: var(--success-text) !important; border-color: #bbf7d0 !important; font-weight: 600; }
+    .btn-toggle-refusee { background: #fee2e2 !important; color: #b91c1c !important; border-color: #fecaca !important; font-weight: 600; }
+
     .admin-tabs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
     @media(min-width: 640px) {
       .admin-tabs { flex-direction: row; justify-content: space-between; align-items: center; }
@@ -519,7 +522,7 @@
     </div>
   </div>
 
-  <div id="notification-globale">Votre réservation a bien été enregistrée. Une réponse vous sera faite par mail (Pensez à vérifier vos spams sur Outlook).</div>
+  <div id="notification-globale">Votre réservation a bien été enregistrée. Une réponse vous sera faite par mail (Pensé a vérifier vos spam sur Outlook).</div>
 
   <!-- JS FIREBASE & LOGIQUE APPLICATIVE -->
   <script type="module">
@@ -552,6 +555,10 @@
     let reservationsData = [];
     let selectedCategory = "Toutes";
     let activeAdminTab = "attente";
+
+    let adminChoices = {}; 
+    let adminQuantities = {}; 
+    let adminMotifs = {};
 
     let panier = JSON.parse(localStorage.getItem('bureau_pret_panier')) || [];
 
@@ -737,356 +744,141 @@
           controls = `
             <div class="cart-add-box">
               <label style="font-size: 0.8rem; color: var(--text-muted);">Qté :</label>
-              <input type="number" id="qty-${item.id}" value="1" min="1" max="${stockDispo}" style="width: 60px; padding: 6px 8px;">
-              <button class="primary" onclick="ajouterAuPanier('${item.id}')">+ Ajouter</button>
+              <input type="number" id="qty-${item.id}" value="1" min="1" max="${stockDispo}" style="width: 50px;">
+              <button class="primary" onclick="ajouterAuPanier('${item.id}', '${item.nom}')">Ajouter</button>
             </div>
           `;
         }
 
         card.innerHTML = `
           <div>
-            <span class="item-title">${item.nom}</span>
-            <span class="item-badge-cat">${item.categorie}</span>
-            <div style="margin-top: 6px; font-size: 0.85rem; color: var(--text-muted);">
-              Stock dispo : <strong style="color: var(--text-main);">${stockDispo}</strong> / ${stockTotal}
+            <div><span class="item-title">${item.nom}</span> <span class="item-badge-cat">${item.categorie}</span></div>
+            <div style="margin-top: 6px;">
+              <span class="status-badge ${isDispo ? 'status-dispo' : 'status-epuise'}">
+                ${isDispo ? '● Disponible' : '○ Épuisé'} (${stockDispo}/${stockTotal})
+              </span>
             </div>
-            ${controls}
           </div>
-          <div>
-            <span class="status-badge ${isDispo ? 'status-dispo' : 'status-epuise'}">
-              ${isDispo ? '● Disponible' : '✕ Épuisé'}
-            </span>
-          </div>
+          ${controls}
         `;
         container.appendChild(card);
       });
     };
 
-    window.ajouterAuPanier = (id) => {
-      const item = materielsData.find(m => m.id === id);
-      const qtyInput = document.getElementById(`qty-${id}`);
-      const qteDemandee = parseInt(qtyInput ? qtyInput.value : 1);
-
-      if (!item) return;
-
-      const stockDispo = item.quantiteDispo ?? 0;
-      if (qteDemandee > stockDispo) {
-        alert("Quantité demandée supérieure au stock disponible.");
-        return;
-      }
-
-      const existingIndex = panier.findIndex(p => p.id === id);
-      if (existingIndex > -1) {
-        const nouvelleQte = panier[existingIndex].quantite + qteDemandee;
-        if (nouvelleQte > stockDispo) {
-          alert("Vous avez déjà atteint le maximum disponible dans votre panier pour cet article.");
-          return;
-        }
-        panier[existingIndex].quantite = nouvelleQte;
-      } else {
-        panier.push({
-          id: item.id,
-          nom: item.nom,
-          categorie: item.categorie,
-          quantite: qteDemandee
-        });
-      }
-
-      sauvegarderPanier();
-      alert(`"${item.nom}" ajouté au panier.`);
-    };
-
-    window.ouvrirModalPanier = () => {
-      definirMinDateDemain();
-      document.getElementById('cartModal').classList.remove('hidden');
-      afficherContenuPanier();
-    };
-
-    window.fermerModalPanier = () => {
-      document.getElementById('cartModal').classList.add('hidden');
-    };
-
-    function afficherContenuPanier() {
-      const container = document.getElementById('cartContent');
-      const formContainer = document.getElementById('cartFormContainer');
-
-      if (panier.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Votre panier est vide.</p>`;
-        formContainer.classList.add('hidden');
-        return;
-      }
-
-      formContainer.classList.remove('hidden');
-      let html = `<div style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;">`;
-      
-      panier.forEach((item, index) => {
-        html += `
-          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); padding: 8px 12px; border-radius: 8px; font-size: 0.9rem;">
-            <div>
-              <strong>${item.nom}</strong> <span style="color: var(--text-muted); font-size: 0.8rem;">(${item.categorie})</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span>Qté : ${item.quantite}</span>
-              <button class="danger" style="padding: 2px 6px; font-size: 0.75rem;" onclick="supprimerDuPanier(${index})">✕</button>
-            </div>
-          </div>
-        `;
+    // Fonctions manquantes (logique métier simplifiée)
+    window.toggleItemMenu = (e, id) => {
+      e.stopPropagation();
+      document.querySelectorAll('.item-dropdown-menu').forEach(m => {
+        if(m.id !== `menu-${id}`) m.classList.add('hidden');
       });
-      html += `</div>`;
-      container.innerHTML = html;
-    }
-
-    window.supprimerDuPanier = (index) => {
-      panier.splice(index, 1);
-      sauvegarderPanier();
-      afficherContenuPanier();
+      document.getElementById(`menu-${id}`).classList.toggle('hidden');
     };
 
-    // CORRIGÉ : Intègre le téléphone ET le flag stockDecompte: false pour que le stock auto fonctionne
-    window.validerPanierDirectement = async () => {
-      const typePret = document.getElementById('cartTypePret').value;
-      const dateDebut = document.getElementById('cartDate').value;
-      const nom = document.getElementById('studentNom').value.trim();
-      const prenom = document.getElementById('studentPrenom').value.trim();
-      const niveau = document.getElementById('studentNiveau').value;
-      const email = document.getElementById('studentEmail').value.trim();
-      const phone = document.getElementById('studentPhone').value.trim();
-
-      if (!dateDebut || !nom || !prenom || !niveau || !email || !phone) {
-        alert("Veuillez remplir tous les champs du formulaire.");
-        return;
-      }
-
-      const btnSubmit = document.getElementById('btnSubmitCart');
-      btnSubmit.disabled = true;
-      btnSubmit.textContent = "Envoi en cours...";
-
-      try {
-        const nouvelleResa = {
-          items: panier,
-          typePret: typePret,
-          dateDebut: dateDebut,
-          nom: nom,
-          prenom: prenom,
-          niveau: niveau,
-          email: email,
-          phone: phone, // Le numéro de téléphone est capturé correctement ici
-          statut: 'en_attente',
-          stockDecompte: false, // INDISPENSABLE pour que la gestion automatique des stocks fonctionne
-          createdAt: new Date().toISOString()
-        };
-
-        await addDoc(collection(db, "reservations"), nouvelleResa);
-
-        const templateParams = {
-          to_email: email,
-          to_name: `${prenom} ${nom}`,
-          message: `Votre réservation pour le ${formatDateFR(dateDebut)} a bien été enregistrée et est en attente de validation.`
-        };
-
-        if (typeof emailjs !== 'undefined') {
-          emailjs.send('default_service', 'template_id', templateParams).catch(err => console.log("EmailJS error:", err));
-        }
-
-        panier = [];
-        sauvegarderPanier();
-        fermerModalPanier();
-        afficherNotificationGlobale();
-
-        document.getElementById('studentNom').value = "";
-        document.getElementById('studentPrenom').value = "";
-        document.getElementById('studentEmail').value = "";
-        document.getElementById('studentPhone').value = "";
-        document.getElementById('cartDate').value = "";
-
-      } catch (err) {
-        console.error("Erreur lors de la réservation :", err);
-        alert("Une erreur est survenue lors de l'envoi de la réservation.");
-      } finally {
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = "Envoyer la réservation";
-      }
+    window.modifierStock = async (id, newQty, total) => {
+      if (newQty < 0 || newQty > total) return;
+      await updateDoc(doc(db, "materiel", id), { quantiteDispo: newQty });
     };
 
-    window.changerOngletAdmin = (onglet) => {
-      activeAdminTab = onglet;
-      document.getElementById('tabAttenteBtn').classList.toggle('active', onglet === 'attente');
-      document.getElementById('tabHistoriqueBtn').classList.toggle('active', onglet === 'historique');
-      document.getElementById('clearHistoryBtn').classList.toggle('hidden', onglet !== 'historique');
-      afficherReservationsAdmin();
-    };
-
-    window.afficherReservationsAdmin = () => {
-      if (!currentUser) return;
-      const container = document.getElementById('reservationsList');
-      
-      const filteredResas = reservationsData.filter(resa => {
-        if (activeAdminTab === 'attente') {
-          return resa.statut === 'en_attente';
-        } else {
-          return resa.statut !== 'en_attente';
-        }
-      });
-
-      if (filteredResas.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Aucune réservation dans cet onglet.</p>`;
-        return;
-      }
-
-      let html = "";
-      filteredResas.forEach(resa => {
-        const dateFin = resa.dateDebut ? ajouterJoursDate(resa.dateDebut, resa.typePret === 'long' ? 7 : 1) : '';
-        
-        let actionsHtml = "";
-        if (resa.statut === 'en_attente') {
-          actionsHtml = `
-            <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
-              <button class="primary" onclick="traiterReservation('${resa.id}', 'validee')">Valider</button>
-              <button class="danger" onclick="traiterReservation('${resa.id}', 'refusee')">Refuser</button>
-            </div>
-          `;
-        } else {
-          const statutClass = resa.statut === 'validee' ? 'tag-validee' : 'tag-refusee';
-          const statutLabel = resa.statut === 'validee' ? 'Validée' : 'Refusée';
-          actionsHtml = `<div style="margin-top: 8px;"><span class="tag-statut ${statutClass}">${statutLabel}</span></div>`;
-        }
-
-        let itemsListHtml = `<ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.85rem; color: var(--text-muted);">`;
-        if (resa.items) {
-          resa.items.forEach(it => {
-            itemsListHtml += `<li>${it.nom} (Qté : ${it.quantite})</li>`;
-          });
-        }
-        itemsListHtml += `</ul>`;
-
-        html += `
-          <div class="group-card">
-            <div class="group-header">
-              <div>
-                <div class="group-user-info">👤 ${resa.prenom || ''} ${resa.nom || ''} (${resa.niveau || 'N/A'})</div>
-                <div class="group-user-info">📧 ${resa.email || 'N/A'}</div>
-                <div class="group-user-info">📞 ${resa.phone || 'Non renseigné'}</div>
-              </div>
-              <div class="group-date">
-                📅 Prêt du ${formatDateFR(resa.dateDebut)} au ${formatDateFR(dateFin)} (${resa.typePret})
-              </div>
-            </div>
-            <div style="font-size: 0.85rem; font-weight: 500;">Matériel demandé :</div>
-            ${itemsListHtml}
-            ${actionsHtml}
-          </div>
-        `;
-      });
-
-      container.innerHTML = html;
-    };
-
-    window.traiterReservation = async (id, nouveauStatut) => {
-      try {
-        await updateDoc(doc(db, "reservations", id), { statut: nouveauStatut });
-      } catch (err) {
-        console.error("Erreur mise à jour réservation :", err);
-        alert("Erreur lors du traitement de la réservation.");
-      }
-    };
-
-    window.viderHistorique = async () => {
-      if (!confirm("Voulez-vous vraiment vider l'historique des réservations traitées ?")) return;
-      try {
-        const toDelete = reservationsData.filter(r => r.statut !== 'en_attente');
-        for (const r of toDelete) {
-          await deleteDoc(doc(db, "reservations", r.id));
-        }
-      } catch (err) {
-        console.error("Erreur vidage historique :", err);
-      }
+    window.supprimerMateriel = async (id) => {
+      if(confirm("Supprimer cet équipement ?")) await deleteDoc(doc(db, "materiel", id));
     };
 
     window.ajouterMateriel = async (e) => {
       e.preventDefault();
-      const nom = document.getElementById('nomMateriel').value.trim();
-      const categorie = document.getElementById('categorieMateriel').value;
-      const quantite = parseInt(document.getElementById('quantiteInitiale').value);
-
-      if (!nom || !categorie || isNaN(quantite)) return;
-
-      try {
-        await addDoc(collection(db, "materiel"), {
-          nom: nom,
-          categorie: categorie,
-          quantiteTotal: quantite,
-          quantiteDispo: quantite
-        });
-        document.getElementById('addHardwareForm').reset();
-      } catch (err) {
-        console.error("Erreur ajout matériel :", err);
-        alert("Erreur lors de l'ajout du matériel.");
-      }
-    };
-
-    window.modifierStock = async (id, nouveauDispo, stockTotal) => {
-      if (nouveauDispo < 0 || nouveauDispo > stockTotal) return;
-      try {
-        await updateDoc(doc(db, "materiel", id), { quantiteDispo: nouveauDispo });
-      } catch (err) {
-        console.error("Erreur modification stock :", err);
-      }
-    };
-
-    window.toggleItemMenu = (e, id) => {
-      e.stopPropagation();
-      document.querySelectorAll('.item-dropdown-menu').forEach(m => {
-        if (m.id !== `menu-${id}`) m.classList.add('hidden');
-      });
-      const menu = document.getElementById(`menu-${id}`);
-      if (menu) menu.classList.toggle('hidden');
+      const nom = document.getElementById('nomMateriel').value;
+      const cat = document.getElementById('categorieMateriel').value;
+      const qte = parseInt(document.getElementById('quantiteInitiale').value);
+      await addDoc(collection(db, "materiel"), { nom, categorie: cat, quantiteTotal: qte, quantiteDispo: qte });
+      e.target.reset();
     };
 
     window.ouvrirModalEdit = (id) => {
       const item = materielsData.find(m => m.id === id);
-      if (!item) return;
-      document.getElementById('editItemId').value = item.id;
+      document.getElementById('editItemId').value = id;
       document.getElementById('editNom').value = item.nom;
       document.getElementById('editCategorie').value = item.categorie;
-      document.getElementById('editTotal').value = item.quantiteTotal ?? 1;
-      document.getElementById('editDispo').value = item.quantiteDispo ?? 0;
+      document.getElementById('editTotal').value = item.quantiteTotal;
+      document.getElementById('editDispo').value = item.quantiteDispo;
       document.getElementById('editModal').classList.remove('hidden');
     };
 
-    window.fermerModalEdit = () => {
-      document.getElementById('editModal').classList.add('hidden');
-    };
+    window.fermerModalEdit = () => document.getElementById('editModal').classList.add('hidden');
 
     window.enregistrerModificationMateriel = async (e) => {
       e.preventDefault();
       const id = document.getElementById('editItemId').value;
-      const nom = document.getElementById('editNom').value.trim();
-      const categorie = document.getElementById('editCategorie').value;
-      const quantiteTotal = parseInt(document.getElementById('editTotal').value);
-      const quantiteDispo = parseInt(document.getElementById('editDispo').value);
-
-      try {
-        await updateDoc(doc(db, "materiel", id), {
-          nom,
-          categorie,
-          quantiteTotal,
-          quantiteDispo
-        });
-        fermerModalEdit();
-      } catch (err) {
-        console.error("Erreur édition matériel :", err);
-        alert("Erreur lors de la modification.");
-      }
+      await updateDoc(doc(db, "materiel", id), {
+        nom: document.getElementById('editNom').value,
+        categorie: document.getElementById('editCategorie').value,
+        quantiteTotal: parseInt(document.getElementById('editTotal').value),
+        quantiteDispo: parseInt(document.getElementById('editDispo').value)
+      });
+      fermerModalEdit();
     };
 
-    window.supprimerMateriel = async (id) => {
-      if (!confirm("Voulez-vous vraiment supprimer cet équipement ?")) return;
-      try {
-        await deleteDoc(doc(db, "materiel", id));
-      } catch (err) {
-        console.error("Erreur suppression matériel :", err);
-      }
+    window.ajouterAuPanier = (id, nom) => {
+      const qte = parseInt(document.getElementById(`qty-${id}`).value);
+      panier.push({ id, nom, quantite: qte });
+      sauvegarderPanier();
+      afficherNotificationGlobale();
     };
+
+    window.ouvrirModalPanier = () => {
+      document.getElementById('cartModal').classList.remove('hidden');
+      definirMinDateDemain();
+      refreshCartUI();
+    };
+
+    window.fermerModalPanier = () => document.getElementById('cartModal').classList.add('hidden');
+
+    function refreshCartUI() {
+      const content = document.getElementById('cartContent');
+      const form = document.getElementById('cartFormContainer');
+      if (panier.length === 0) {
+        content.innerHTML = "<p>Votre panier est vide.</p>";
+        form.classList.add('hidden');
+        return;
+      }
+      content.innerHTML = panier.map((p, i) => `<div>${p.quantite}x ${p.nom} <button onclick="retirerDuPanier(${i})">X</button></div>`).join('');
+      form.classList.remove('hidden');
+    }
+
+    window.retirerDuPanier = (idx) => {
+      panier.splice(idx, 1);
+      sauvegarderPanier();
+      refreshCartUI();
+    };
+
+    window.validerPanierDirectement = async () => {
+      const resa = {
+        items: panier,
+        dateDebut: document.getElementById('cartDate').value,
+        nom: document.getElementById('studentNom').value,
+        prenom: document.getElementById('studentPrenom').value,
+        email: document.getElementById('studentEmail').value,
+        statut: 'attente',
+        created: new Date().toISOString()
+      };
+      await addDoc(collection(db, "reservations"), resa);
+      panier = [];
+      sauvegarderPanier();
+      fermerModalPanier();
+      alert("Réservation envoyée !");
+    };
+
+    window.changerOngletAdmin = (tab) => {
+      activeAdminTab = tab;
+      document.getElementById('tabAttenteBtn').classList.toggle('active', tab === 'attente');
+      document.getElementById('tabHistoriqueBtn').classList.toggle('active', tab === 'historique');
+      afficherReservationsAdmin();
+    };
+
+    window.afficherReservationsAdmin = () => {
+      const list = document.getElementById('reservationsList');
+      const filtered = reservationsData.filter(r => activeAdminTab === 'attente' ? r.statut === 'attente' : true);
+      list.innerHTML = filtered.map(r => `<div>${r.nom} - ${r.statut}</div>`).join('');
+    };
+
   </script>
 </body>
 </html>
