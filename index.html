@@ -185,7 +185,6 @@
     button.danger:hover { background: #fee2e2; }
     button.qty-btn { padding: 4px 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; }
 
-    /* Styles spécifiques pour les boutons de validation admin interactifs */
     .btn-choice-valider {
       flex: 1;
       padding: 10px;
@@ -833,7 +832,7 @@
           nom: item.nom,
           categorie: item.categorie,
           quantite: qteDemandee,
-          quantiteAttribuee: qteDemandee // Initialisé à la quantité demandée
+          quantiteAttribuee: qteDemandee
         });
       }
 
@@ -908,7 +907,7 @@
       try {
         const itemsAvecAttribution = panier.map(item => ({
           ...item,
-          quantiteAttribuee: item.quantite // Par défaut, attribution = demande initiale
+          quantiteAttribuee: item.quantite
         }));
 
         const nouvelleResa = {
@@ -934,7 +933,7 @@
         };
 
         if (typeof emailjs !== 'undefined') {
-          emailjs.send('service_qxu52ro', 'template_pqtasnz', templateParams).catch(err => console.log("EmailJS error:", err));
+          emailjs.send('default_service', 'template_id', templateParams).catch(err => console.log("EmailJS error:", err));
         }
 
         panier = [];
@@ -988,7 +987,6 @@
         
         let contentHtml = "";
         if (resa.statut === 'en_attente') {
-          // Panneau de traitement interactif comme sur la première image
           let itemsListHtml = `<div style="margin: 8px 0; display: flex; flex-direction: column; gap: 8px;">`;
           if (resa.items) {
             resa.items.forEach((it, idx) => {
@@ -1038,7 +1036,7 @@
           if (resa.items) {
             resa.items.forEach(it => {
               const qteA = it.quantiteAttribuee !== undefined ? it.quantiteAttribuee : it.quantite;
-              itemsListHtml += `<li>${it.nom} (Attribué : ${qteA} / Demadé : ${it.quantite})</li>`;
+              itemsListHtml += `<li>${it.nom} (Attribué : ${qteA} / Demandé : ${it.quantite})</li>`;
             });
           }
           itemsListHtml += `</ul>`;
@@ -1077,7 +1075,6 @@
       container.innerHTML = html;
     };
 
-    // Gestion du choix visuel Valider / Refuser dans le panneau admin
     window.adminChoicesState = window.adminChoicesState || {};
     window.setAdminChoice = (resaId, choix) => {
       window.adminChoicesState[resaId] = choix;
@@ -1102,7 +1099,6 @@
       const resaRef = reservationsData.find(r => r.id === resaId);
       if (!resaRef) return;
 
-      // Récupérer les nouvelles quantités attribuées modifiées par l'admin
       const updatedItems = resaRef.items.map((it, idx) => {
         const inputEl = document.getElementById(`attrib-${resaId}-${idx}`);
         const qteAttr = inputEl ? parseInt(inputEl.value) || 0 : it.quantite;
@@ -1112,7 +1108,6 @@
         };
       });
 
-      // Vérifier si des changements de quantité ont eu lieu
       let changementsTexte = "";
       updatedItems.forEach(it => {
         if (it.quantiteAttribuee !== it.quantite) {
@@ -1121,14 +1116,12 @@
       });
 
       try {
-        // Mettre à jour la réservation dans Firestore
         await updateDoc(doc(db, "reservations", resaId), {
           statut: statutChoisi,
           items: updatedItems,
           motif: motif
         });
 
-        // Si la date du jour correspond ou est passée, ajuster directement le stock disponible du matériel
         const aujourdhuiStr = new Date().toISOString().split('T')[0];
         if (statutChoisi === 'validee' && resaRef.dateDebut <= aujourdhuiStr) {
           for (const it of updatedItems) {
@@ -1143,14 +1136,28 @@
           await updateDoc(doc(db, "reservations", resaId), { stockDecompte: true });
         }
 
-        // Envoyer l'e-mail via EmailJS avec le récapitulatif et les changements éventuels
-        let messageEmail = `Votre réservation pour le ${formatDateFR(resaRef.dateDebut)} a été ${statutChoisi === 'validee' ? 'validée' : 'refusée'}.`;
+        // Restauration du format d'e-mail détaillé avec smileys et état du stock
+        let smileyEtat = statutChoisi === 'validee' ? '✅' : '❌';
+        let statutTexteMail = statutChoisi === 'validee' ? 'VALIDÉE' : 'REFUSÉE';
+        
+        let messageEmail = `${smileyEtat} Bonjour ${resaRef.prenom} ${resaRef.nom},\n\nVotre demande de réservation pour le matériel du bureau de prêt (prévue le ${formatDateFR(resaRef.dateDebut)}) a été ${statutTexteMail}.`;
+        
+        if (statutChoisi === 'validee') {
+          messageEmail += `\n\n📦 Détail du matériel attribué :`;
+          updatedItems.forEach(it => {
+            messageEmail += `\n- ${it.nom} : ${it.quantiteAttribuee} unité(s) validée(s) (Demandé : ${it.quantite})`;
+          });
+        }
+
         if (changementsTexte) {
-          messageEmail += `\n\nAttention, des modifications de quantités ont été appliquées :` + changementsTexte;
+          messageEmail += `\n\n⚠️ Ajustements sur le stock :` + changementsTexte;
         }
+
         if (motif) {
-          messageEmail += `\n\nRemarque du gestionnaire : "${motif}"`;
+          messageEmail += `\n\n💬 Remarque du gestionnaire : "${motif}"`;
         }
+
+        messageEmail += `\n\nMerci de votre visite et à bientôt !\nL'équipe du Bureau de Prêt 📦`;
 
         const templateParams = {
           to_email: resaRef.email,
